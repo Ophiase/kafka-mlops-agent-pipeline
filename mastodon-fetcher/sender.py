@@ -1,3 +1,4 @@
+import logging
 from kafka import KafkaProducer
 from typing import Any, Dict, List
 from constants import KAFKA_SERVER, KAFKA_PORT, KAFKA_RAW_TOPIC
@@ -15,10 +16,8 @@ class Sender:
         self.send_posts(posts)
 
     def send_posts(self, posts: List[Dict[str, Any]]) -> None:
-        print(f"Sending {len(posts)} posts to Kafka...")
+        logging.info(f"Sending {len(posts)} posts to Kafka...")
         for post in posts:
-            self.send(KAFKA_RAW_TOPIC, post)
-
-    def send(self, topic: str, message: Dict[str, Any]) -> None:
-        self.producer.send(topic, message)
+            self.producer.send(KAFKA_RAW_TOPIC, post)
         self.producer.flush()
+        logging.info(f"Sent {len(posts)} posts to Kafka")
