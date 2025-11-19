@@ -1,0 +1,1 @@
+TODO: mvp, langchain connected to ollama to extract X information from the post

@@ -1,0 +1,1 @@
+In this folder I will manage safe types (in .avsc or protobuf) for kafka topics

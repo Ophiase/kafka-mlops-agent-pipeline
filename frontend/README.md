@@ -1,0 +1,1 @@
+TODO: django front end to visualize kafka topics in live (and later controle the stream, e.g. fetcher speed)
