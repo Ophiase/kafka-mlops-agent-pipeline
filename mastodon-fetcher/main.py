@@ -3,6 +3,7 @@ from server import Server
 
 def main():
     print("Starting Mastodon Fetcher Server...")
+    print("-" * 20)
     Server().run()
 
 

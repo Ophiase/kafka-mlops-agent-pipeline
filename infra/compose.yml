@@ -31,3 +31,13 @@ services:
       - kafka
     volumes:
       - ./secrets:/secrets:ro
+  
+  metrics-processor:
+    build:
+      context: ../metrics-processor
+    container_name: metrics-processor
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+    depends_on:
+      - kafka
+
