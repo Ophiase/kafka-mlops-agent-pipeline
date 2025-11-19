@@ -1,5 +1,8 @@
+from server import MastodonFetcherServer
+
+
 def main():
-    print("Hello from news-kafka!")
+    MastodonFetcherServer().run()
 
 
 if __name__ == "__main__":

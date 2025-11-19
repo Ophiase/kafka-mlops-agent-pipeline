@@ -1,1 +1,1 @@
-Master repository
+# Mastodon Fetcher

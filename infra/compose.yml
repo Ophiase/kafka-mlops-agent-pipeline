@@ -1,0 +1,33 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:8.1.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # KRaft required settings:
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ID: "1"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+
+      KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: "1"
+      # KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,CONTROLLER://kafka:9093"
+
+  mastodon-fetcher:
+    build:
+      context: ../mastodon-fetcher
+    container_name: mastodon-fetcher
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+      FETCH_INTERVAL_MS: "5000"
+    depends_on:
+      - kafka
+    volumes:
+      - ./secrets:/secrets:ro
