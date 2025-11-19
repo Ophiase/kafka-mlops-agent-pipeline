@@ -1,9 +1,9 @@
-from server import MastodonFetcherServer
+from server import Server
 
 
 def main():
     print("Starting Mastodon Fetcher Server...")
-    MastodonFetcherServer().run()
+    Server().run()
 
 
 if __name__ == "__main__":
