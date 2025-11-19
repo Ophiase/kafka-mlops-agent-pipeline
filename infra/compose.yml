@@ -18,7 +18,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
 
       KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: "1"
-      # KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,CONTROLLER://kafka:9093"
+  # KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,CONTROLLER://kafka:9093"
 
   mastodon-fetcher:
     build:
@@ -30,14 +30,29 @@ services:
     depends_on:
       - kafka
     volumes:
+      - ../mastodon-fetcher:/app
       - ./secrets:/secrets:ro
   
   metrics-processor:
     build:
       context: ../metrics-processor
     container_name: metrics-processor
+    volumes:
+      - "../metrics-processor:/app"
     environment:
       KAFKA_BROKERS: "kafka:9092"
     depends_on:
       - kafka
+    networks:
+      - internal
 
+  llm-server:
+    build:
+      context: ../llm-server
+    container_name: llm-server
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

@@ -1,0 +1,3 @@
+OLLAMA_SERVER_URL = "http://localhost"
+OLLAMA_SERVER_PORT = 11434
+OLLAMA_MODEL = "qwen3:0.6b"
