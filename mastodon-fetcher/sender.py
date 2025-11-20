@@ -8,6 +8,7 @@ import json
 class Sender:
     def __init__(self, bootstrap_servers: str = f"{KAFKA_SERVER}:{KAFKA_PORT}") -> None:
         print(bootstrap_servers)
+        bootstrap_servers = "localhost:9092"
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers
         )
@@ -19,7 +20,7 @@ class Sender:
     def send_posts(self, posts: List[Dict[str, Any]]) -> None:
         print(f"Sending {len(posts)} posts to Kafka...")
         for post in posts:
-            raw_post = self.print_post(post)
+            raw_post = self.post_to_str(post)
             self.producer.send(KAFKA_RAW_TOPIC, raw_post)
         self.producer.flush()
         print(f"Sent {len(posts)} posts to Kafka")
@@ -30,5 +31,5 @@ class Sender:
         raise TypeError(f"Type {type(obj)} not serializable")
 
     
-    def print_post(self, post: Dict[str, Any]) -> None:
-        print(post["created"], post["author"], "-", post["text"], "\n")
+    def post_to_str(self, post: Dict[str, Any]) -> str:
+        return post["created"], post["author"], "-", post["text"]
