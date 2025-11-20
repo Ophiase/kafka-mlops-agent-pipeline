@@ -8,11 +8,10 @@ import json
 class Sender:
     def __init__(self, bootstrap_servers: str = f"{KAFKA_SERVER}:{KAFKA_PORT}") -> None:
         print(bootstrap_servers)
-        bootstrap_servers = "localhost:9092"
         self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers
+            bootstrap_servers=bootstrap_servers,
+            value_serializer=lambda v: json.dumps(v, default=self.json_serializer).encode("utf-8")
         )
-        # value_serializer=lambda v: json.dumps(v, default=self.json_serializer).encode("utf-8")
 
     def __call__(self, posts: List[Dict[str, Any]]) -> None:
         self.send_posts(posts)
@@ -20,8 +19,8 @@ class Sender:
     def send_posts(self, posts: List[Dict[str, Any]]) -> None:
         print(f"Sending {len(posts)} posts to Kafka...")
         for post in posts:
-            raw_post = self.post_to_str(post)
-            self.producer.send(KAFKA_RAW_TOPIC, raw_post)
+            # raw_post = str(self.post_to_str(post))
+            self.producer.send(KAFKA_RAW_TOPIC, posts)
         self.producer.flush()
         print(f"Sent {len(posts)} posts to Kafka")
 

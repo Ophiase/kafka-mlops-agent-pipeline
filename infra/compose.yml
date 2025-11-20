@@ -14,7 +14,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
 
       KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
 
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
 
@@ -28,7 +28,6 @@ services:
       context: ../mastodon-fetcher
     container_name: mastodon-fetcher
     environment:
-      KAFKA_BROKERS: "kafka:9092"
       FETCH_INTERVAL_MS: "5000"
     depends_on:
       kafka:
@@ -45,10 +44,9 @@ services:
     container_name: metrics-processor
     volumes:
       - "../metrics-processor:/app"
-    environment:
-      KAFKA_BROKERS: "kafka:9092"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_started
     networks:
       - internal
 
