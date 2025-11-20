@@ -1,3 +1,7 @@
+clean:
+	docker compose down --remove-orphans
+	docker system prune -f
+
 build:
 	docker compose build
 
