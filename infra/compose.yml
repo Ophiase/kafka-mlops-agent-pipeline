@@ -20,6 +20,12 @@ services:
 
       KAFKA_OFFSET_TOPIC_REPLICATION_FACTOR: "1"
       # KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092,CONTROLLER://kafka:9093"
+
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     networks:
       - internal
 
@@ -31,7 +37,7 @@ services:
       FETCH_INTERVAL_MS: "5000"
     depends_on:
       kafka:
-        condition: service_started
+        condition: service_healthy #service_started
     volumes:
       - ../mastodon-fetcher:/app
       - ./secrets:/secrets:ro
@@ -46,16 +52,16 @@ services:
       - "../metrics-processor:/app"
     depends_on:
       kafka:
-        condition: service_started
+        condition: service_healthy
     networks:
       - internal
 
-  # llm-server:
-  #   build:
-  #     context: ../llm-server
-  #   container_name: llm-server
-  #   networks:
-  #     - internal
+# llm-server:
+#   build:
+#     context: ../llm-server
+#   container_name: llm-server
+#   networks:
+#     - internal
 
 networks:
   internal:
