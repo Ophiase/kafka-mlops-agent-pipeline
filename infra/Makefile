@@ -10,3 +10,5 @@ run:
 
 run-build:
 	docker compose up --build -d
+
+rb: run-build
