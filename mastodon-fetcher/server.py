@@ -8,15 +8,17 @@ import time
 
 
 class Server:
+    fetcher: Fetcher
+    sender: Sender
+
     def __init__(self):
-        pass
+        self.fetcher = Fetcher(MASTODON_ACCESS_TOKEN)
+        self.sender = Sender()
 
     def run(self):
-        fetcher = Fetcher(MASTODON_ACCESS_TOKEN)
-        sender = Sender()
 
         while True:
-            posts = fetcher()
-            sender(posts)
+            posts = self.fetcher()
+            self.sender(posts)
 
             time.sleep(FETCH_INTERVAL_MS / 1000)
