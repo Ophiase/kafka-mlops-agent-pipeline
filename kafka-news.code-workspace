@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "mastodon-fetcher"
+        },
+        {
+            "path": "metrics-processor"
+        }
+    ],
+    "settings": {
+        "python.defaultInterpreterPath": "",
+        "python.terminal.activateEnvironment": true,
+        "python.analysis.extraPaths": [
+            "./mastodon-fetcher",
+            "./metrics-processor"
+        ]
+    }
+}
