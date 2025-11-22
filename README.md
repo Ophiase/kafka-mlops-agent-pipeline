@@ -5,7 +5,8 @@ This repository is a simple MLOPS project that demonstrates the integration of a
 The point is to learn building scalable architectures using:
 - Docker
 - Docker Compose $\to$ K8s
-- Terraform
+- Mounted secrets $\to$ Vault or K8s secrets
+- Terraform (local AWS simulation with LocalStack)
 - Ollama $\to$ vLLM
 
 The word agent here refers to a stateless (no internal memory) automated event-based system. Perhaps, a more appropriate name would be "Mastodon Listener".
