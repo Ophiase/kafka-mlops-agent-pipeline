@@ -19,7 +19,7 @@ class Sender:
     def send_posts(self, posts: List[Dict[str, Any]]) -> None:
         print(f"Sending {len(posts)} posts to Kafka...")
         for post in posts:
-            raw_post = str(self.post_to_str(post))
+            # raw_post = str(self.post_to_str(post))
             self.producer.send(KAFKA_RAW_TOPIC, posts)
             pass
         self.producer.flush()
