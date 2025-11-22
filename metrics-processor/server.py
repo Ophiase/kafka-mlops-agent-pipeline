@@ -10,7 +10,15 @@ class Server:
     processor: Processor
     sender: Sender
 
-    def __init__(self):
+    timeout_ms: int
+    max_records: int
+
+    def __init__(self,
+                 timeout_ms: int = 1000,
+                 max_records: int = 10):
+        self.timeout_ms = timeout_ms
+        self.max_records = max_records
+
         self.consumer = KafkaConsumer(
             KAFKA_RAW_TOPIC,
             bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
@@ -20,25 +28,21 @@ class Server:
             model=OLLAMA_MODEL,
             base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}"
         )
-
         self.sender = Sender()
-
-        # prompts = [
-        #     "I love the new design of your website!",
-        #     "The product quality has significantly improved over the years.",
-        #     "Customer service was unhelpful and rude.",
-        #     "I'm extremely satisfied with my purchase experience.",
-        #     "The delivery was delayed and the package arrived damaged."
-        # ]
-
-        # result = self.processor(prompts)
-        # print(result)
 
     def run(self):
         print("Metrics Processor Server is Listening...")
 
-        for message in self.consumer:
-            print("Received message:", message.value.decode('utf-8'))
-            processed = self.processor([message.value.decode('utf-8')])
-            print("Processed:", processed)
-            self.sender(processed)
+        while True:
+            print("-" * 20)
+            print("Polling for messages...")
+
+            messages = self.consumer.poll(
+                timeout_ms=self.timeout_ms, max_records=self.max_records)
+            print(f"Received {len(messages)} messages")
+
+            processed_messages = self.processor(messages)
+            print(f"Processed {len(processed_messages)} messages")
+
+            self.sender.send(processed_messages)
+            print(f"Sent {len(processed_messages)} messages")
