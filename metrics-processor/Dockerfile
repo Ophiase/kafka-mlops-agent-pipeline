@@ -4,8 +4,7 @@ WORKDIR /app
 COPY . .
 
 ENV PYTHONUNBUFFERED=1
-# ENV UV_LINK_MODE=copy
-
+ENV UV_LINK_MODE=copy
 RUN uv sync --frozen
 
 # CMD ["tail", "-f", "/dev/null"]
