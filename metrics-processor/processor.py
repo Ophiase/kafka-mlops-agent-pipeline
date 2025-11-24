@@ -30,12 +30,15 @@ class Processor:
         return ChatOllama(model=model, base_url=base_url)
 
     def build_messages(self, posts: List[Dict[str, Any]]) -> List:
+        print(posts)
+        print("-" * 20)
         posts: List[str] = [
             self.parse(post) for post in posts]
         humans = [HumanMessage(post) for post in posts]
         return [self.prompt] + humans
 
     def parse(self, content: Dict[str, Any]) -> List[str]:
+        print("Original Content:", content)
         content: str = self.extract_post(content)
         content_cleaned = self.sanitize_post(content)
         return content_cleaned

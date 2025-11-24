@@ -40,10 +40,9 @@ class Server:
             print("Polling for messages...")
 
             messages = self.pull_messages()
-            print(f"Received {len(messages)} messages")
-
             if not messages:
                 continue
+            print(f"Received {len(messages)} messages")
 
             processed_messages = self.processor(messages)
             print(f"Processed {len(processed_messages)} messages")
@@ -52,23 +51,23 @@ class Server:
             print(f"Sent {len(processed_messages)} messages")
 
     def pull_messages(self) -> Optional[List[str]]:
-        messages = self.consumer.poll(
+        raw_messages = self.consumer.poll(
             timeout_ms=self.timeout_ms, 
             max_records=self.max_records)
         
-        if not messages:
+        if not raw_messages:
             return None
         
         n_messages = 0
         result: List[Dict[str, Any]] = []
-        for tp, msgs in messages.items():
-            for message in msgs:
-                n_messages += 1
+        for topic_partition, kafka_messages in raw_messages.items():
+            for kafka_message in kafka_messages:
+                n_messages = n_messages + 1
                 try:
-                    data = json.loads(message.value.decode())
-                    result.append(data)
-                except Exception as e:
-                    print("Error decoding message:", e)
+                    decoded_data = json.loads(kafka_message.value.decode())
+                    result.append(decoded_data)
+                except Exception as decode_error:
+                    print("Error decoding message:", decode_error)
         
         if len(result) != n_messages:
             print(f"Warning: Expected {n_messages} messages, but decoded {len(result)}")
