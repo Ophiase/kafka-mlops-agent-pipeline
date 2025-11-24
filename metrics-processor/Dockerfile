@@ -4,6 +4,9 @@ WORKDIR /app
 COPY . .
 
 ENV PYTHONUNBUFFERED=1
+# ENV UV_LINK_MODE=copy
+
+RUN uv sync --frozen
 
 # CMD ["tail", "-f", "/dev/null"]
-CMD ["sh", "-c", "uv sync && uv run main.py"]
+CMD ["sh", "-c", "uv run main.py"]
