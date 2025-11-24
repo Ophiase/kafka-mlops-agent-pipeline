@@ -8,6 +8,12 @@
         },
         {
             "path": "metrics-processor"
+        },
+        {
+            "path": "dashboard"
+        },
+        {
+            "path": "shared"
         }
     ],
     "settings": {
@@ -15,7 +21,9 @@
         "python.terminal.activateEnvironment": true,
         "python.analysis.extraPaths": [
             "./mastodon-fetcher",
-            "./metrics-processor"
+            "./metrics-processor",
+            "./shared",
+            "./dashboard"
         ]
     }
 }
