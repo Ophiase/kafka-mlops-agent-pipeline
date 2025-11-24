@@ -4,6 +4,7 @@ from constants import OLLAMA_MODEL, OLLAMA_SERVER_URL, OLLAMA_SERVER_PORT
 from langchain_ollama import ChatOllama
 from langchain.messages import SystemMessage, HumanMessage
 from pathlib import Path
+import re
 
 
 class Processor:
@@ -17,11 +18,10 @@ class Processor:
         self.prompt = self.load_prompt(prompt_path)
         self.llm = self.build_llm(model, base_url)
 
-    def __call__(self, posts: List[str]) -> List[Dict[str, Any]]:
-        msgs = self.build_messages(posts)
-        ai_msg = self.llm.invoke(msgs)
-        return ai_msg.content
-        # return self.parse(ai_msg.content)
+    def __call__(self, posts: List[Dict[str, Any]]) -> List[str]:
+        messages = self.build_messages(posts)
+        ai_response = self.llm.invoke(messages)
+        return ai_response.content
 
     def load_prompt(self, path: str) -> SystemMessage:
         return SystemMessage(Path(path).read_text().strip())
@@ -29,10 +29,23 @@ class Processor:
     def build_llm(self, model: str, base_url: str) -> ChatOllama:
         return ChatOllama(model=model, base_url=base_url)
 
-    def build_messages(self, posts: List[str]):
-        system = self.prompt
+    def build_messages(self, posts: List[Dict[str, Any]]) -> List:
+        posts: List[str] = [
+            self.parse(post) for post in posts]
         humans = [HumanMessage(post) for post in posts]
-        return [system] + humans
+        return [self.prompt] + humans
 
-    def parse(self, content: str) -> List[Dict[str, Any]]:
-        return json.loads(content)
+    def parse(self, content: Dict[str, Any]) -> List[str]:
+        content: str = self.extract_post(content)
+        content_cleaned = self.sanitize_post(content)
+        return content_cleaned
+
+    def sanitize_post(self, post: str) -> str:
+        # Remove HTML/XML tags and special characters, keep only alphanumerics and spaces
+        cleaned = re.sub(r'<[^>]+>', '', post)  # Remove tags
+        # Remove special characters
+        cleaned = re.sub(r'[^A-Za-z0-9\s]', '', cleaned)
+        return cleaned.strip()
+
+    def extract_post(self, message: Dict[str, Any], limit=400) -> str:
+        return message["text"][:limit]
