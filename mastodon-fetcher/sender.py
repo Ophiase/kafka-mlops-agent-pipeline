@@ -10,7 +10,8 @@ class Sender:
         print(bootstrap_servers)
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v, default=self.json_serializer).encode("utf-8")
+            value_serializer=lambda v: json.dumps(
+                v, default=self.json_serializer).encode("utf-8")
         )
 
     def __call__(self, posts: List[Dict[str, Any]]) -> None:
@@ -19,9 +20,7 @@ class Sender:
     def send_posts(self, posts: List[Dict[str, Any]]) -> None:
         print(f"Sending {len(posts)} posts to Kafka...")
         for post in posts:
-            # raw_post = str(self.post_to_str(post))
-            self.producer.send(KAFKA_RAW_TOPIC, posts)
-            pass
+            self.producer.send(KAFKA_RAW_TOPIC, post)
         self.producer.flush()
         print(f"Sent {len(posts)} posts to Kafka")
 
@@ -30,6 +29,5 @@ class Sender:
             return obj.isoformat()
         raise TypeError(f"Type {type(obj)} not serializable")
 
-    
     def post_to_str(self, post: Dict[str, Any]) -> str:
         return post["created"], post["author"], "-", post["text"]
