@@ -1,1 +1,6 @@
-TODO: django front end to visualize kafka topics in live (and later controle the stream, e.g. fetcher speed)
+# Django Dashboard
+
+TODO:
+- django app (monolithic for now)
+- visualize kafka topics in live
+- control the stream, e.g. fetcher speed
