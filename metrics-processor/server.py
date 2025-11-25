@@ -17,7 +17,7 @@ class Server:
 
     def __init__(self,
                  timeout_ms: int = 1000,
-                 max_records: int = 10):
+                 max_records: int = 5):
         self.timeout_ms = timeout_ms
         self.max_records = max_records
 

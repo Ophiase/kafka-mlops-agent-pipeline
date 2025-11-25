@@ -20,10 +20,12 @@ class Processor:
 
     def __call__(self, posts: List[Dict[str, Any]]) -> List[str]:
         messages = self.build_messages(posts)
-        print("Invoke LLM...")
-        ai_response = self.llm.invoke(messages)
-        print("LLM response received.")
-        return ai_response.content
+        print("[LLM] Invoke...")
+        ai_response = self.llm.invoke(messages).content
+        print("[LLM] Response received.")
+        print("[LLM] Response:\n", ai_response)
+        result = [ai_response]  # todo: split
+        return result
 
     def load_prompt(self, path: str) -> SystemMessage:
         return SystemMessage(Path(path).read_text().strip())
