@@ -20,7 +20,9 @@ class Processor:
 
     def __call__(self, posts: List[Dict[str, Any]]) -> List[str]:
         messages = self.build_messages(posts)
+        print("Invoke LLM...")
         ai_response = self.llm.invoke(messages)
+        print("LLM response received.")
         return ai_response.content
 
     def load_prompt(self, path: str) -> SystemMessage:
@@ -30,17 +32,15 @@ class Processor:
         return ChatOllama(model=model, base_url=base_url)
 
     def build_messages(self, posts: List[Dict[str, Any]]) -> List:
-        print(posts)
-        print("-" * 20)
         posts: List[str] = [
             self.parse(post) for post in posts]
         humans = [HumanMessage(post) for post in posts]
         return [self.prompt] + humans
 
     def parse(self, content: Dict[str, Any]) -> List[str]:
-        print("Original Content:", content)
         content: str = self.extract_post(content)
         content_cleaned = self.sanitize_post(content)
+        # print("Cleaned Content:", content_cleaned)
         return content_cleaned
 
     def sanitize_post(self, post: str) -> str:
@@ -50,5 +50,5 @@ class Processor:
         cleaned = re.sub(r'[^A-Za-z0-9\s]', '', cleaned)
         return cleaned.strip()
 
-    def extract_post(self, message: Dict[str, Any], limit=400) -> str:
+    def extract_post(self, message: Dict[str, Any], limit=100) -> str:
         return message["text"][:limit]
