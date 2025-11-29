@@ -3,13 +3,15 @@
 This repository is a simple MLOPS project that demonstrates the integration of a Mastodon agent with Kafka for data streaming and processing.
 
 The point is to learn building scalable architectures using:
-- Docker
-- Docker Compose $\to$ K8s
-- Mounted secrets $\to$ Vault or K8s secrets
-- Terraform (local AWS simulation with LocalStack)
-- Ollama $\to$ vLLM
+- ✅ Docker (with proper isolation and shared resources)
+- ✅ Docker Compose $\to$ ❌ K8s/Helm
+- ✅ Mounted secrets $\to$ ❌ Vault or K8s secrets
+- ❌ Terraform (local AWS simulation with LocalStack)
+- ✅ Ollama $\to$ ❌ vLLM
     - Agent managed with LangChain/LangGraph
-- Django/Streamlit/Dash
+- Django mono $\to$ ❌ Django back + Next.js/Tailwind front
+
+Remark: The syntax $x \to y$ means I will start with $x$ and move to $y$.
 
 The word agent here refers to a stateless (no internal memory) automated event-based system. Perhaps, a more appropriate name would be "Mastodon Listener".
 
