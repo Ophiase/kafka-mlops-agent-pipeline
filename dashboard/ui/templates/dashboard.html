@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <h1>Dashboard</h1>
+
+    <h2>Fetcher</h2>
+    <p>Fetched: {{ fetcher.number_fetched }}</p>
+    <p>Sent to Kafka: {{ fetcher.number_sent_to_kafka }}</p>
+
+    <h2>Processor</h2>
+    <p>In Process: {{ processor.in_process }}</p>
+    <p>Sent to Kafka: {{ processor.number_sent_to_kafka }}</p>
+</body>
+
+</html>
