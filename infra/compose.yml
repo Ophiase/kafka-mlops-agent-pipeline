@@ -31,7 +31,8 @@ services:
 
   mastodon-fetcher:
     build:
-      context: ../mastodon-fetcher
+      context: ..
+      dockerfile: mastodon-fetcher/Dockerfile
     container_name: mastodon-fetcher
     environment:
       FETCH_INTERVAL_MS: "5000"
@@ -40,19 +41,35 @@ services:
         condition: service_healthy #service_started
     volumes:
       - ../mastodon-fetcher:/app
+      - ../shared:/shared
       - ./secrets:/secrets:ro
     networks:
       - internal
   
   metrics-processor:
     build:
-      context: ../metrics-processor
+      context: ..
+      dockerfile: metrics-processor/Dockerfile
     container_name: metrics-processor
     volumes:
-      - "../metrics-processor:/app"
+      - ../metrics-processor:/app
+      - ../shared:/shared
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - internal
+  
+  dashboard:
+    build:
+      context: ..
+      dockerfile: dashboard/Dockerfile
+    container_name: dashboard
+    ports:
+      - "58005:8000"
+    volumes:
+      - ../dashboard:/app
+      - ../shared:/shared
     networks:
       - internal
 

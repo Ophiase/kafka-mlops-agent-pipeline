@@ -1,10 +1,10 @@
 [project]
 name = "mastodon-fetcher"
 version = "0.1.0"
-description = "Add your description here"
+description = "Server to fetch data from Mastodon instances and send them to Kafka"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "Mastodon.py",
-    "kafka-python"
-]
+dependencies = ["Mastodon.py", "kafka-python", "shared"]
+
+[tool.uv.sources]
+shared = { path = "../shared" }

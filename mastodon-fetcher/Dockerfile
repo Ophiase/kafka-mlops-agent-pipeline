@@ -1,7 +1,8 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
 WORKDIR /app
-COPY . .
+COPY ./mastodon-fetcher /app
+COPY ./shared /shared
 
 ENV PYTHONUNBUFFERED=1
 ENV UV_LINK_MODE=copy

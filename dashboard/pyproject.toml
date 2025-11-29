@@ -1,9 +1,10 @@
 [project]
 name = "dashboard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dashboard application for data visualization"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "django"
-]
+dependencies = ["django", "kafka-python", "shared"]
+
+[tool.uv.sources]
+shared = { path = "../shared" }
