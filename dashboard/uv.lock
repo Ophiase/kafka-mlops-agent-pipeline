@@ -18,12 +18,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "django" },
     { name = "kafka-python" },
+    { name = "shared" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "django" },
     { name = "kafka-python" },
+    { name = "shared", directory = "../shared" },
 ]
 
 [[package]]
@@ -48,6 +50,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/27/5c/d3b6d93ed625d2cb0
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4a/db/694fd552295ed091e7418d02b6268ee36092d4c93211136c448fe061fe32/kafka_python-2.3.0-py2.py3-none-any.whl", hash = "sha256:831ba6dff28144d0f1145c874d391f3ebb3c2c3e940cc78d74e83f0183497c98", size = 326260, upload-time = "2025-11-21T00:47:32.561Z" },
 ]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+source = { directory = "../shared" }
 
 [[package]]
 name = "sqlparse"

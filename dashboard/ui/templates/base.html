@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}DashBoard{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'ui/dashboard.css' %}" />
+</head>
+<body>
+    <header class="page-header">
+        <h1>DashBoard</h1>
+        <p>Kafka pipeline status at a glance.</p>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
