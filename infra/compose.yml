@@ -76,7 +76,7 @@ services:
   llm-server:
     hostname: llm-server
     build:
-      context: ../llm-server
+      context: ../llm-server/ollama
     container_name: llm-server
     networks:
       - internal

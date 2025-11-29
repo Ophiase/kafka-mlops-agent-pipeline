@@ -1,8 +1,7 @@
-# LLM server - Ollama Instance
+# LLM Server
 
-Simple Docker-based server to host an Ollama LLM instance for local or networked use.
+This repository contains Docker-based servers to host various LLM instances for local or networked use.
 
 ## Remarks
 
-If you want you can use instead your own Ollama installation or the Ollama cloud service.
-This server is just a placeholder for the docker-compose.
+You can use your own installations or cloud services for the LLMs. These servers are primarily placeholders for the respective docker-compose setups.
