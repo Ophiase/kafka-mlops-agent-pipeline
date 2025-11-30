@@ -31,7 +31,7 @@ services:
 
   mastodon-fetcher:
     build:
-      context: ..
+      context: ../..
       dockerfile: mastodon-fetcher/Dockerfile
     container_name: mastodon-fetcher
     environment:
@@ -40,20 +40,20 @@ services:
       kafka:
         condition: service_healthy #service_started
     volumes:
-      - ../mastodon-fetcher:/app
-      - ../shared:/shared
+      - ../../mastodon-fetcher:/app
+      - ../../shared:/shared
       - ./secrets:/secrets:ro
     networks:
       - internal
   
   metrics-processor:
     build:
-      context: ..
+      context: ../..
       dockerfile: metrics-processor/Dockerfile
     container_name: metrics-processor
     volumes:
-      - ../metrics-processor:/app
-      - ../shared:/shared
+      - ../../metrics-processor:/app
+      - ../../shared:/shared
     depends_on:
       kafka:
         condition: service_healthy
@@ -62,21 +62,21 @@ services:
   
   dashboard:
     build:
-      context: ..
+      context: ../..
       dockerfile: dashboard/Dockerfile
     container_name: dashboard
     ports:
       - "58005:8000"
     volumes:
-      - ../dashboard:/app
-      - ../shared:/shared
+      - ../../dashboard:/app
+      - ../../shared:/shared
     networks:
       - internal
 
   llm-server:
     hostname: llm-server
     build:
-      context: ../llm-server
+      context: ../../llm-server
     container_name: llm-server
     networks:
       - internal

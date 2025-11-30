@@ -19,7 +19,7 @@ The Mastodon agent listens to new posts on a Mastodon instance, processes them u
 
 ## Setup Instructions
 
-### Quick Start
+### Quick Start (Using Docker Compose)
 
 1. Install docker (cli)
 2. 🎛️ Configure your secrets in `/infra/secrets` file.
@@ -27,8 +27,10 @@ The Mastodon agent listens to new posts on a Mastodon instance, processes them u
 4. Start the services:
 
 ```bash
-cd infra
+cd infra/docker-compose
 docker compose up -d --build
 ```
 
 5. Open the front http://localhost:58005 to access the application.
+
+### Quick Start (Using Kubernetes)
