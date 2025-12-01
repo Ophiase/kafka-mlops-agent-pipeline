@@ -4,6 +4,8 @@ This directory contains the Kubernetes equivalent of the Docker Compose setup.
 
 Docker Compose is great for local development and testing, but Kubernetes provides a more robust and scalable environment for deploying applications.
 
+Currently there is only the dashboard service deployed, we will add the other services in the future. 
+
 ## Setup Instructions
 
 Requirements

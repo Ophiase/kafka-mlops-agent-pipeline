@@ -4,14 +4,22 @@ This repository is a simple MLOPS project that demonstrates the integration of a
 
 The point is to learn building scalable architectures using:
 - ✅ Docker (with proper isolation and shared resources)
-- ✅ Docker Compose $\to$ ❌ K8s/Helm
-- ✅ Mounted secrets $\to$ ❌ Vault or K8s secrets
-- ❌ Terraform (local AWS simulation with LocalStack)
-- ✅ Ollama $\to$ ❌ vLLM
-    - Agent managed with LangChain/LangGraph
-- Django mono $\to$ ❌ Django back + Next.js/Tailwind front
-
-Remark: The syntax $x \to y$ means I will start with $x$ and move to $y$.
+- ✅ Docker Compose (for local development)
+    - ✅ Mounted secrets (not the most secure)
+    - advantage: easy to setup + mounted volumes for code changes
+- ✅ K8s/Helm (for production-like deployments)
+    - ❌ TODO: Vault or K8s secrets
+    - advantage: scalable + closer to production environments
+- ❌ TODO: Terraform (local AWS simulation with LocalStack)
+- ✅ LLM server for LangChain/LangGraph agents
+    - ✅ Ollama (qwen3:0.6b)
+    - ❌ TODO: vLLM
+- ✅ Kafka for data streaming
+    - ❌ TODO: Protobuf serialization
+- Dashboard
+    - Controller + Visualizer for the Mastodon agent
+    - Django Mono (backend + frontend)
+    - Next.js + Tailwind (frontend only) ❌ TODO: migrate to this
 
 The word agent here refers to a stateless (no internal memory) automated event-based system. Perhaps, a more appropriate name would be "Mastodon Listener".
 
@@ -34,3 +42,21 @@ docker compose up -d --build
 5. Open the front http://localhost:58005 to access the application.
 
 ### Quick Start (Using Kubernetes)
+
+1. Install docker (cli), kind, kubectl, make
+2. 🎛️ Configure the secrets (not done yet)
+3. 🎛️ Configure your llm server in `/infra/llm-server.env` file.
+4. Create the kind cluster, build and load images, deploy the application:
+
+```bash
+cd infra/k8s
+make create-cluster
+
+make build # build the images if not done yet
+make kind-load # load the images into the kind cluster
+
+make deploy # deploy the application
+make port-forward # to open localhost:58005
+```
+
+5. Open the front http://localhost:58005 to access the application.
