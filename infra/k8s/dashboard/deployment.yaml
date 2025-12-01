@@ -22,12 +22,6 @@ spec:
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "kafka:9092"
-          volumeMounts:
-            - name: shared
-              mountPath: /shared
-      volumes:
-        - name: shared
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
