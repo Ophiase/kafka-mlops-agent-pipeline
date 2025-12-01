@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: dashboard:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+      volumes:
+        - name: shared
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: infra
+spec:
+  type: ClusterIP
+  selector:
+    app: dashboard
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
