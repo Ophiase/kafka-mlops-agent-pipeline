@@ -8,10 +8,10 @@ delete-cluster:
 	kind delete cluster --name $(KIND_CLUSTER)
 
 build-dashboard:
-	docker build -t dashboard:dev -f ../../dashboard/Dockerfile ../../
+	docker build -t infra-dashboard:dev -f ../../dashboard/Dockerfile ../../
 
 kind-load-dashboard:
-	kind load docker-image dashboard:dev --name $(KIND_CLUSTER)
+	kind load docker-image infra-dashboard:dev --name $(KIND_CLUSTER)
 
 deploy:
 	kubectl apply -f namespace.yaml
