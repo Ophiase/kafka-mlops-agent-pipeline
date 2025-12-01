@@ -33,6 +33,7 @@ services:
     build:
       context: ../..
       dockerfile: mastodon-fetcher/Dockerfile
+    image: infra-mastodon-fetcher:latest
     container_name: mastodon-fetcher
     environment:
       FETCH_INTERVAL_MS: "5000"
@@ -50,6 +51,7 @@ services:
     build:
       context: ../..
       dockerfile: metrics-processor/Dockerfile
+    image: infra-metrics-processor:dev
     container_name: metrics-processor
     volumes:
       - ../../metrics-processor:/app
@@ -64,6 +66,7 @@ services:
     build:
       context: ../..
       dockerfile: dashboard/Dockerfile
+    image: infra-dashboard:dev
     container_name: dashboard
     ports:
       - "58005:8000"
@@ -77,6 +80,7 @@ services:
     hostname: llm-server
     build:
       context: ../../llm-server
+    image: infra-llm-server:dev
     container_name: llm-server
     networks:
       - internal
