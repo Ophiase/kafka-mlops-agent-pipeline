@@ -33,7 +33,7 @@ services:
     build:
       context: ../..
       dockerfile: mastodon-fetcher/Dockerfile
-    image: infra-mastodon-fetcher:latest
+    image: infra-mastodon-fetcher:dev
     container_name: mastodon-fetcher
     environment:
       FETCH_INTERVAL_MS: "5000"

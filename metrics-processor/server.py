@@ -1,59 +1,103 @@
+from __future__ import annotations
 import json
+from typing import Any, Dict, List, Optional
+from kafka import KafkaConsumer
+from constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 from processor import Processor
 from sender import Sender
-from kafka import KafkaConsumer
-from shared.kafka.constants import KAFKA_PORT, KAFKA_PROCESSED_TOPIC, KAFKA_RAW_TOPIC, KAFKA_SERVER
-from constants import OLLAMA_MODEL, OLLAMA_SERVER_URL, OLLAMA_SERVER_PORT
-from typing import List, Dict, Any, Optional
+from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
+from shared.server import BaseService
 
 
-class Server:
+class Server(BaseService):
     consumer: KafkaConsumer
     processor: Processor
     sender: Sender
 
-    timeout_ms: int
-    max_records: int
-
     def __init__(self,
+                 *,
                  timeout_ms: int = 1000,
                  max_records: int = 5):
+        super().__init__(loop_delay=0.0)
         self.timeout_ms = timeout_ms
         self.max_records = max_records
-
         self.consumer = KafkaConsumer(
             KAFKA_RAW_TOPIC,
             bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
-            auto_offset_reset='earliest')
-
+            auto_offset_reset="earliest",
+        )
         self.processor = Processor(
             model=OLLAMA_MODEL,
-            base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}"
+            base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}",
         )
         self.sender = Sender()
+        self._state.metadata.update({
+            "timeout_ms": self.timeout_ms,
+            "max_records": self.max_records,
+        })
 
-    def run(self):
+    def run(self) -> None:
         print("Metrics Processor Server is Listening...")
+        self.start()
+        self.wait()
 
-        while True:
-            print("-" * 20)
-            print("Polling for messages...")
+    def configure(self,
+                  *,
+                  timeout_ms: Optional[int] = None,
+                  max_records: Optional[int] = None) -> None:
+        """
+        Update the server configuration.
+        """
+        if timeout_ms is not None and timeout_ms > 0:
+            self.timeout_ms = timeout_ms
+        if max_records is not None and max_records > 0:
+            self.max_records = max_records
+        self._state.metadata.update({
+            "timeout_ms": self.timeout_ms,
+            "max_records": self.max_records,
+        })
 
-            messages = self.pull_messages()
-            if not messages:
-                continue
-            print(f"Received {len(messages)} messages")
+    def _loop_iteration_kwargs(self) -> Dict[str, Any]:
+        return {"send_to_kafka": True}
 
-            processed_messages = self.processor(messages)
-            print(f"Processed {len(processed_messages)} messages")
+    def _run_iteration(self, *, send_to_kafka: bool = True) -> Dict[str, Any]:
+        """
+        Execute a single processing iteration.
+        Returns a snapshot of the iteration results.
+        """
+        raw_messages = self.pull_messages()
+        if not raw_messages:
+            snapshot = {
+                "received": 0,
+                "processed": 0,
+                "sent": 0,
+                "send_to_kafka": send_to_kafka,
+            }
+            self._state.metadata.update(snapshot)
+            return {**snapshot, "messages": [], "processed_messages": []}
 
+        processed_messages = self.processor(raw_messages)
+        if send_to_kafka and processed_messages:
             self.sender(processed_messages)
-            print(f"Sent {len(processed_messages)} messages")
 
-    def pull_messages(self) -> Optional[List[str]]:
+        snapshot = {
+            "received": len(raw_messages),
+            "processed": len(processed_messages),
+            "sent": len(processed_messages) if send_to_kafka else 0,
+            "send_to_kafka": send_to_kafka,
+        }
+        self._state.metadata.update(snapshot)
+        return {
+            **snapshot,
+            "messages": raw_messages,
+            "processed_messages": processed_messages,
+        }
+
+    def pull_messages(self) -> Optional[List[Dict[str, Any]]]:
         raw_messages = self.consumer.poll(
             timeout_ms=self.timeout_ms,
-            max_records=self.max_records)
+            max_records=self.max_records,
+        )
 
         if not raw_messages:
             return None
@@ -62,7 +106,7 @@ class Server:
         result: List[Dict[str, Any]] = []
         for topic_partition, kafka_messages in raw_messages.items():
             for kafka_message in kafka_messages:
-                n_messages = n_messages + 1
+                n_messages += 1
                 try:
                     message_string = kafka_message.value.decode()
                     decoded_data = json.loads(message_string)
