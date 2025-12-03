@@ -2,7 +2,7 @@ import json
 from processor import Processor
 from sender import Sender
 from kafka import KafkaConsumer
-from constants import KAFKA_PORT, KAFKA_PROCESSED_TOPIC, KAFKA_RAW_TOPIC, KAFKA_SERVER
+from shared.kafka.constants import KAFKA_PORT, KAFKA_PROCESSED_TOPIC, KAFKA_RAW_TOPIC, KAFKA_SERVER
 from constants import OLLAMA_MODEL, OLLAMA_SERVER_URL, OLLAMA_SERVER_PORT
 from typing import List, Dict, Any, Optional
 

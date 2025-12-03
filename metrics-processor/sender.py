@@ -1,7 +1,7 @@
 import datetime
 from kafka import KafkaProducer
 from typing import Any, Dict, List
-from constants import KAFKA_SERVER, KAFKA_PORT, KAFKA_PROCESSED_TOPIC
+from shared.kafka.constants import KAFKA_SERVER, KAFKA_PORT, KAFKA_PROCESSED_TOPIC
 import json
 
 
