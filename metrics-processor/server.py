@@ -47,7 +47,7 @@ class Server:
             processed_messages = self.processor(messages)
             print(f"Processed {len(processed_messages)} messages")
 
-            self.sender.send(processed_messages)
+            self.sender(processed_messages)
             print(f"Sent {len(processed_messages)} messages")
 
     def pull_messages(self) -> Optional[List[str]]:
