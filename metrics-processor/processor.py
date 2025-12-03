@@ -19,12 +19,20 @@ class Processor:
         self.llm = self.build_llm(model, base_url)
 
     def __call__(self, posts: List[Dict[str, Any]]) -> List[str]:
+        # Build messages for LLM
         messages = self.build_messages(posts)
+
+        # Invoke LLM
         print("[LLM] Invoke...")
-        ai_response = self.llm.invoke(messages).content
+        llm_response = self.llm.invoke(messages).content
         print("[LLM] Response received.")
-        print("[LLM] Response:\n", ai_response)
-        result = [ai_response]  # todo: split
+        print("[LLM] Response:\n", llm_response)
+
+        # Parse LLM response
+        result = self.parse_ai_response(
+            llm_response,
+            expected_response_count=len(posts))
+
         return result
 
     def load_prompt(self, path: str) -> SystemMessage:
@@ -54,3 +62,29 @@ class Processor:
 
     def extract_post(self, message: Dict[str, Any], limit=100) -> str:
         return message["text"][:limit]
+
+    def parse_ai_response(self,
+                          response: str,
+                          expected_response_count: int
+                          ) -> List[Dict[str, Any] | None]:
+        """
+        Receive a JSON array string and convert it to a list of strings (sub-jsons).
+        """
+        checked = True
+        result = None
+
+        try:
+            data = json.loads(response)
+            if isinstance(data, list):
+                result = [json.dumps(item) for item in data]
+            if len(result) != expected_response_count:
+                print("Mismatch in expected response count.")
+                checked = False
+        except json.JSONDecodeError:
+            checked = False
+
+        if checked:
+            return result
+
+        print("Failed to decode JSON response.")
+        return [None] * expected_response_count
