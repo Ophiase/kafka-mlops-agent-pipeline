@@ -42,16 +42,14 @@ class Processor:
         return ChatOllama(model=model, base_url=base_url)
 
     def build_messages(self, posts: List[Dict[str, Any]]) -> List:
-        posts: List[str] = [
-            self.parse(post) for post in posts]
-        humans = [HumanMessage(post) for post in posts]
-        return [self.prompt] + humans
+        parsed: List[Dict[str, str]] = [self.parse(p) for p in posts]
+        payload = {"items": parsed}
+        return [self.prompt, HumanMessage(content=str(payload))]
 
-    def parse(self, content: Dict[str, Any]) -> List[str]:
-        content: str = self.extract_post(content)
-        content_cleaned = self.sanitize_post(content)
-        # print("Cleaned Content:", content_cleaned)
-        return content_cleaned
+    def parse(self, post: Dict[str, Any]) -> Dict[str, str]:
+        text = self.extract_post(post)
+        cleaned = self.sanitize_post(text)
+        return {"id": post["id"], "text": cleaned}
 
     def sanitize_post(self, post: str) -> str:
         # Remove HTML/XML tags and special characters, keep only alphanumerics and spaces

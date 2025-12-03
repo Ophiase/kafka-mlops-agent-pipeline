@@ -3,15 +3,19 @@ Your task is to classify each input message as "positive", "negative", "neutral"
 
 Rules:
 - Analyze each message independently.
-- Output JSON only.
+- Keep the same order as in the input.
+- Output valid JSON only.
+- No text outside the JSON array.
 - Each item must contain:
     - "sentiment"
     - "explanation"
 
 Example Input:
 ```
-"I love the new design of your website!"
-"I hate waiting in long lines."
+"items": [
+    { "id": "<string>", "text": "I love the new design of your website!" },
+    { "id": "<string>", "text": "I hate waiting in long lines." },
+]
 ```
 
 Example Output:
