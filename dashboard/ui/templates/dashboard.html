@@ -3,116 +3,27 @@
 {% block title %}DashBoard · Control{% endblock %}
 
 {% block content %}
+<!-- Dashboard root: exposes URLs for JS auto-refresh -->
 <div id="dashboard-root"
      data-state-url="{{ state_url }}"
      data-kafka-raw-url="{{ kafka_urls.raw }}"
      data-kafka-processed-url="{{ kafka_urls.processed }}">
-    <section class="console-grid">
-        <article class="console-panel console-panel--events">
-            <header class="console-panel__header">
-                <h2>Service Console</h2>
-                <div class="console-actions">
-                    <button type="button" class="btn ghost" data-action="clear-console">Clear</button>
-                </div>
-            </header>
-            <div class="console-log" data-console-log="events">
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="console-entry console-entry--{{ message.tags|default:'info' }}">
-                        <div class="console-entry__meta">[{{ message.tags|default:'info'|upper }}]</div>
-                        <pre>{{ message }}</pre>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="console-placeholder">No events yet.</div>
-                {% endif %}
-            </div>
-        </article>
 
-        <details class="console-panel console-panel--raw" data-kafka-console="raw" data-fetch-url="{{ kafka_urls.raw }}" open>
-            <summary>Raw Kafka Stream Tail</summary>
-            <div class="console-actions">
-                <button type="button" class="btn ghost" data-action="refresh-tail" data-stream="raw">Refresh</button>
-            </div>
-            <div class="console-log" data-console-log="raw">
-                {% include "partials/_kafka_tail.html" with samples=kafka_tails.raw %}
-            </div>
-        </details>
-
-        <details class="console-panel console-panel--processed" data-kafka-console="processed" data-fetch-url="{{ kafka_urls.processed }}" open>
-            <summary>Processed Kafka Stream Tail</summary>
-            <div class="console-actions">
-                <button type="button" class="btn ghost" data-action="refresh-tail" data-stream="processed">Refresh</button>
-            </div>
-            <div class="console-log" data-console-log="processed">
-                {% include "partials/_kafka_tail.html" with samples=kafka_tails.processed %}
-            </div>
-        </details>
+    <!-- Cards: Mastodon Fetcher + Metrics Processor -->
+    <section class="card-grid" data-service-grid>
+        {% with fetcher=service_lookup.fetcher processor=service_lookup.processor %}
+            {% if fetcher %}
+                {% include "partials/dashboard/_service_card.html" with service=fetcher %}
+            {% endif %}
+            {% if processor %}
+                {% include "partials/dashboard/_service_card.html" with service=processor %}
+            {% endif %}
+        {% endwith %}
     </section>
 
-    <section class="card-grid" data-service-grid>
-    {% for service in services %}
-    <article class="card" data-service="{{ service.key }}">
-        <header class="card-header">
-            <h2>{{ service.label }}</h2>
-            <span class="phase-badge phase-{{ service.phase|default:'unknown' }}" data-phase>{{ service.phase|upper }}</span>
-        </header>
-        <p class="muted" data-iterations>Iterations: {{ service.iterations }}</p>
-        <p class="error-text" data-last-error {% if not service.last_error %}hidden{% endif %}>
-            Last error: <span>{{ service.last_error }}</span>
-        </p>
-        <ul class="metrics" data-metrics>
-            {% for metric in service.metrics %}
-            <li>
-                <span class="metric-label">{{ metric.label }}</span>
-                <span class="metric-value">{{ metric.value|default:"—" }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-        <div class="card-actions">
-            <form method="post" class="inline-form">
-                {% csrf_token %}
-                <input type="hidden" name="service" value="{{ service.key }}" />
-                <button class="btn" name="action" value="start" type="submit">Start</button>
-                <button class="btn ghost" name="action" value="stop" type="submit">Stop</button>
-            </form>
-            <form method="post" class="run-form">
-                {% csrf_token %}
-                <input type="hidden" name="service" value="{{ service.key }}" />
-                <input type="hidden" name="action" value="run" />
-                {% if service.supports_limit %}
-                <label class="field">
-                    Limit
-                    <input type="number" name="limit" min="1" placeholder="{{ service.metadata.fetch_limit|default:'limit' }}" />
-                </label>
-                {% endif %}
-                <label class="checkbox-row">
-                    <input type="checkbox" name="send_to_kafka" value="on" checked />
-                    <span>Send to Kafka</span>
-                </label>
-                <button class="btn primary" type="submit">Run Once</button>
-            </form>
-            {% if service.config_fields %}
-            <form method="post" class="run-form">
-                {% csrf_token %}
-                <input type="hidden" name="service" value="{{ service.key }}" />
-                <input type="hidden" name="action" value="configure" />
-                {% for field in service.config_fields %}
-                <label class="field">
-                    {{ field.label }}
-                    <input type="{{ field.input_type }}" name="{{ field.name }}"
-                        {% if field.min %}min="{{ field.min }}"{% endif %}
-                        {% if field.step %}step="{{ field.step }}"{% endif %}
-                        value="{{ field.value|default:'' }}"
-                        placeholder="{{ field.value|default:'value' }}" />
-                </label>
-                {% endfor %}
-                <button class="btn" type="submit">Update Config</button>
-            </form>
-            {% endif %}
-        </div>
-    </article>
-    {% endfor %}
-</section>
+    <!-- Global console output (flash + runtime events) -->
+    {% include "partials/dashboard/_service_console.html" with messages=messages %}
 </div>
 {% endblock %}
+
+

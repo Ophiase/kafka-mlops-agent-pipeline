@@ -1,0 +1,13 @@
+{# -- Kafka tail block scoped to a specific service -- #}
+<details class="console-panel console-panel--{{ panel.stream }}"
+         data-kafka-console="{{ panel.stream }}"
+         data-fetch-url="{{ panel.url }}"
+         open>
+    <summary>{{ panel.title }}</summary>
+    <div class="console-actions">
+        <button type="button" class="btn ghost" data-action="refresh-tail" data-stream="{{ panel.stream }}">Refresh</button>
+    </div>
+    <div class="console-log" data-console-log="{{ panel.stream }}">
+        {% include "partials/_kafka_tail.html" with samples=panel.samples %}
+    </div>
+</details>

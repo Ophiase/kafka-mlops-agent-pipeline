@@ -69,6 +69,7 @@ SERVICE_DEFINITIONS = {
         "setting": "FETCHER_API_URL",
         "supports_limit": True,
         "metrics_builder": _fetcher_metrics,
+        "kafka_stream": "raw",
         "config_fields": (
             ConfigField("fetch_limit", "Fetch limit", _positive_int, min_value="1"),
             ConfigField(
@@ -85,11 +86,17 @@ SERVICE_DEFINITIONS = {
         "setting": "PROCESSOR_API_URL",
         "supports_limit": False,
         "metrics_builder": _processor_metrics,
+        "kafka_stream": "processed",
         "config_fields": (
             ConfigField("timeout_ms", "Timeout (ms)", _positive_int, min_value="1"),
             ConfigField("max_records", "Max records", _positive_int, min_value="1"),
         ),
     },
+}
+
+KAFKA_PANEL_TITLES = {
+    "raw": "Raw Kafka Stream Tail",
+    "processed": "Processed Kafka Stream Tail",
 }
 
 
@@ -102,20 +109,24 @@ def _build_clients() -> Dict[str, ControlApiClient]:
 
 def dashboard(request: HttpRequest) -> HttpResponse:
     clients = _build_clients()
+    kafka_urls = {
+        "raw": reverse("kafka-tail", kwargs={"stream": "raw"}),
+        "processed": reverse("kafka-tail", kwargs={"stream": "processed"}),
+    }
+    serialized_tails = {
+        key: _serialize_tail(samples) for key, samples in initial_tails().items()
+    }
 
     if request.method == "POST":
         _handle_post(request, clients)
         return redirect("dashboard")
 
-    services = _build_service_context(clients)
-    tails = initial_tails()
+    services = _build_service_context(clients, serialized_tails, kafka_urls)
+    service_lookup = {service["key"]: service for service in services}
     context = {
         "services": services,
-        "kafka_tails": {key: _serialize_tail(samples) for key, samples in tails.items()},
-        "kafka_urls": {
-            "raw": reverse("kafka-tail", kwargs={"stream": "raw"}),
-            "processed": reverse("kafka-tail", kwargs={"stream": "processed"}),
-        },
+        "service_lookup": service_lookup,
+        "kafka_urls": kafka_urls,
         "state_url": reverse("service-state"),
     }
     return render(request, "dashboard.html", context)
@@ -124,7 +135,11 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 @require_GET
 def service_state(request: HttpRequest) -> JsonResponse:
     clients = _build_clients()
-    services = _build_service_context(clients)
+    kafka_urls = {
+        "raw": reverse("kafka-tail", kwargs={"stream": "raw"}),
+        "processed": reverse("kafka-tail", kwargs={"stream": "processed"}),
+    }
+    services = _build_service_context(clients, {}, kafka_urls)
     return JsonResponse({"services": services})
 
 
@@ -218,7 +233,11 @@ def _build_config_payload(request: HttpRequest, fields: Sequence[ConfigField]) -
     return payload
 
 
-def _build_service_context(clients: Dict[str, ControlApiClient]) -> List[Dict[str, Any]]:
+def _build_service_context(
+    clients: Dict[str, ControlApiClient],
+    kafka_tails: Dict[str, List[Dict[str, Any]]],
+    kafka_urls: Dict[str, str],
+) -> List[Dict[str, Any]]:
     services: List[Dict[str, Any]] = []
 
     for key, definition in SERVICE_DEFINITIONS.items():
@@ -246,6 +265,16 @@ def _build_service_context(clients: Dict[str, ControlApiClient]) -> List[Dict[st
             for field in definition.get("config_fields", ())
         ]
 
+        stream = definition.get("kafka_stream")
+        kafka_panel = None
+        if stream:
+            kafka_panel = {
+                "stream": stream,
+                "title": KAFKA_PANEL_TITLES.get(stream, f"{definition['label']} Kafka Tail"),
+                "url": kafka_urls.get(stream, ""),
+                "samples": kafka_tails.get(stream, []),
+            }
+
         services.append(
             {
                 "key": key,
@@ -257,6 +286,7 @@ def _build_service_context(clients: Dict[str, ControlApiClient]) -> List[Dict[st
                 "metrics": definition["metrics_builder"](metadata),
                 "supports_limit": definition.get("supports_limit", False),
                 "config_fields": config_fields,
+                "kafka_panel": kafka_panel,
             }
         )
 

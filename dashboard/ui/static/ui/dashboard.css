@@ -47,7 +47,7 @@ main {
 }
 
 .console-panel {
-    background: #111827;
+    background: #1d2330;
     border-radius: 12px;
     padding: 1rem;
     border: 1px solid rgba(248, 250, 252, 0.15);
@@ -170,6 +170,25 @@ details.console-panel > summary::-webkit-details-marker {
     border-radius: 12px;
     padding: 1.5rem;
     /* box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12); */
+}
+
+.service-panels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.service-panel {
+    flex: 1 1 280px;
+}
+
+.service-panel--console {
+    min-width: 260px;
+}
+
+.service-panel--console .console-panel {
+    height: 100%;
 }
 
 .card h2 {

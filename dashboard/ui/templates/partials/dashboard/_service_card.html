@@ -1,0 +1,79 @@
+{# -- Individual service control card -- #}
+<article class="card" data-service="{{ service.key }}">
+    <!-- Service heading and status badge -->
+    <header class="card-header">
+        <h2>{{ service.label }}</h2>
+        <span class="phase-badge phase-{{ service.phase|default:'unknown' }}" data-phase>{{ service.phase|upper }}</span>
+    </header>
+
+    <div class="service-panels">
+        <div class="service-panel service-panel--management">
+            <!-- Iterations and last error summary -->
+            <p class="muted" data-iterations>Iterations: {{ service.iterations }}</p>
+            <p class="error-text" data-last-error {% if not service.last_error %}hidden{% endif %}>
+                Last error: <span>{{ service.last_error }}</span>
+            </p>
+
+            <!-- Key metrics -->
+            <ul class="metrics" data-metrics>
+                {% for metric in service.metrics %}
+                <li>
+                    <span class="metric-label">{{ metric.label }}</span>
+                    <span class="metric-value">{{ metric.value|default:"—" }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Start/stop and run/configure controls -->
+            <div class="card-actions">
+                <form method="post" class="inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ service.key }}" />
+                    <button class="btn" name="action" value="start" type="submit">Start</button>
+                    <button class="btn ghost" name="action" value="stop" type="submit">Stop</button>
+                </form>
+                <form method="post" class="run-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ service.key }}" />
+                    <input type="hidden" name="action" value="run" />
+                    {% if service.supports_limit %}
+                    <label class="field">
+                        Limit
+                        <input type="number" name="limit" min="1" placeholder="{{ service.metadata.fetch_limit|default:'limit' }}" />
+                    </label>
+                    {% endif %}
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="send_to_kafka" value="on" checked />
+                        <span>Send to Kafka</span>
+                    </label>
+                    <button class="btn primary" type="submit">Run Once</button>
+                </form>
+                {% if service.config_fields %}
+                <form method="post" class="run-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ service.key }}" />
+                    <input type="hidden" name="action" value="configure" />
+                    {% for field in service.config_fields %}
+                    <label class="field">
+                        {{ field.label }}
+                        <input type="{{ field.input_type }}" name="{{ field.name }}"
+                            {% if field.min %}min="{{ field.min }}"{% endif %}
+                            {% if field.step %}step="{{ field.step }}"{% endif %}
+                            value="{{ field.value|default:'' }}"
+                            placeholder="{{ field.value|default:'value' }}" />
+                    </label>
+                    {% endfor %}
+                    <button class="btn" type="submit">Update Config</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if service.kafka_panel %}
+        <div class="service-panel service-panel--console">
+            <!-- Kafka tail embedded within this service card -->
+            {% include "partials/dashboard/_kafka_panel.html" with panel=service.kafka_panel %}
+        </div>
+        {% endif %}
+    </div>
+</article>

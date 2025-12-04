@@ -1,14 +1,10 @@
 from __future__ import annotations
-
 import json
 import threading
 from typing import Any, Dict, List, Optional
-
 from kafka import KafkaConsumer
-
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
 from shared.server import BaseService
-
 from .constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 from .processor import Processor
 from .sender import Sender
@@ -70,6 +66,7 @@ class Server(BaseService):
         consumer = self._acquire_consumer()
         try:
             # Pull messages from Kafka
+            print("Pulling messages from Kafka...")
             raw_messages = self.pull_messages(consumer)
             if not raw_messages or len(raw_messages) == 0:
                 self._log("No Kafka messages available on this iteration")
@@ -89,7 +86,8 @@ class Server(BaseService):
             # Send to Kafka
             if send_to_kafka and processed_messages:
                 self.sender(processed_messages)
-                self._log(f"Sent {len(processed_messages)} processed message(s) to Kafka")
+                self._log(
+                    f"Sent {len(processed_messages)} processed message(s) to Kafka")
 
             snapshot = {
                 "received": len(raw_messages),

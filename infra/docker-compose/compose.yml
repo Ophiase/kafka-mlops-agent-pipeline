@@ -46,8 +46,6 @@ services:
       - ../../mastodon-fetcher:/app
       - ../../shared:/shared
       - ./secrets:/secrets:ro
-    ports:
-      - "58101:8001"
     networks:
       - internal
   
@@ -66,8 +64,6 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-    ports:
-      - "58102:8002"
     networks:
       - internal
   

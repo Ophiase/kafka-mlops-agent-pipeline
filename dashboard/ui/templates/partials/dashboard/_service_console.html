@@ -1,0 +1,23 @@
+{# -- Primary service event console -- #}
+<section class="console-grid">
+    <article class="console-panel console-panel--events">
+        <header class="console-panel__header">
+            <h2>Service Console</h2>
+            <div class="console-actions">
+                <button type="button" class="btn ghost" data-action="clear-console">Clear</button>
+            </div>
+        </header>
+        <div class="console-log" data-console-log="events">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="console-entry console-entry--{{ message.tags|default:'info' }}">
+                    <div class="console-entry__meta">[{{ message.tags|default:'info'|upper }}]</div>
+                    <pre>{{ message }}</pre>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="console-placeholder">No events yet.</div>
+            {% endif %}
+        </div>
+    </article>
+</section>
