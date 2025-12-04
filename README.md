@@ -1,6 +1,15 @@
-# Mastodon Agent - MLOPS Project (WIP)
+# Mastodon Processor Agent - MLOPS Project (WIP)
 
-This repository is a simple MLOPS project that demonstrates the integration of a Mastodon agent with Kafka for data streaming and processing.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-yellow.svg)](https://www.python.org/)
+
+This repository is a simple MLOPS project that demonstrates the integration of a Mastodon processor agent with Kafka for data streaming and processing.
+
+<div align="center">
+  <img src="./documentation/resources/dashboard-gui-00.png" width="800">
+</div>
+
+## Project Overview
 
 The point is to learn building scalable architectures using:
 - ✅ Docker (with proper isolation and shared resources)
@@ -25,7 +34,7 @@ The word agent here refers to a stateless (no internal memory) automated event-b
 
 The Mastodon agent listens to new posts on a Mastodon instance, processes them using a language model, and streams the results to Kafka for further analysis or storage.
 
-## Setup Instructions
+## 🚀 Setup Instructions
 
 ### Quick Start (Using Docker Compose)
 
