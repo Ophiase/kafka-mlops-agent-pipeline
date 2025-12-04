@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-processor
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-processor
+  template:
+    metadata:
+      labels:
+        app: metrics-processor
+    spec:
+      containers:
+        - name: metrics-processor
+          image: infra-metrics-processor:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8002
+              name: http
+          env:
+            - name: PROCESSOR_API_PORT
+              value: "8002"
+            - name: PROCESSOR_AUTO_START
+              value: "true"
+            - name: OLLAMA_SERVER_URL
+              value: "llm-server"
+            - name: OLLAMA_SERVER_PORT
+              value: "11434"
+            - name: OLLAMA_MODEL
+              value: "qwen3:0.6b"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-processor
+  namespace: infra
+spec:
+  selector:
+    app: metrics-processor
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002

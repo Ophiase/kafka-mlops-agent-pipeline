@@ -1,10 +1,16 @@
 # Kubernetes Deployment
 
-This directory contains the Kubernetes equivalent of the Docker Compose setup. 
+This directory contains the Kubernetes equivalent of the Docker Compose setup.
 
-Docker Compose is great for local development and testing, but Kubernetes provides a more robust and scalable environment for deploying applications.
+Docker Compose is still great for hot-reload development because it mounts `/app` and `/shared`. In Kubernetes the containers run exactly as they are baked in their images, so there are **no bind mounts**. Because of that, make sure the dev images (e.g. `infra-mastodon-fetcher:dev`) already exist locally before deploying.
 
-Currently there is only the dashboard service deployed, we will add the other services in the future. 
+The manifests now cover every service from `docker-compose`:
+
+- `kafka/` – single broker using `confluentinc/cp-kafka:8.1.0`.
+- `mastodon-fetcher/` – FastAPI control plane for the fetcher loop.
+- `metrics-processor/` – FastAPI control plane plus LLM integration.
+- `llm-server/` – Ollama server pod the processor talks to.
+- `dashboard/` – Django dashboard that orchestrates the other services.
 
 ## Setup Instructions
 
@@ -19,16 +25,16 @@ Requirements
 # Create the Kubernetes cluster using kind
 make create-cluster
 
-# Build the Docker images
-make build-dashboard
-# Load the Docker images into the kind cluster
-make kind-load-dashboard
+# (Optional) rebuild & reload the dev images if you changed them
+make build-images
+make kind-load-images
 
-# Deploy the application to the Kubernetes cluster
+# Deploy every manifest (namespace + kafka + services)
 make deploy
 
-# Check logs
+# Check dashboard logs or expose it locally
 make logs
-# Port-forward for local access
 make port-forward
 ```
+
+If you update the other service images, rebuild them with the same tags that `docker-compose` uses (`infra-*-service:dev`) and run `kind load docker-image <tag> --name dev` before redeploying.
