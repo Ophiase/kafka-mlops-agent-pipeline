@@ -61,8 +61,8 @@ docker compose up -d --build
 cd infra/k8s
 make create-cluster
 
-make build # build the images if not done yet
-make kind-load # load the images into the kind cluster
+make build-images # build the images if not done yet
+make kind-load-images # load the images into the kind cluster
 
 make deploy # deploy the application
 make port-forward # to open localhost:58005
