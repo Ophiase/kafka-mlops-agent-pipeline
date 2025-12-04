@@ -1,12 +1,15 @@
 :root {
     color-scheme: light dark;
     /* font-family: "Segoe UI", Tahoma, sans-serif; */
+
+    --default-bg: #e7dcbd;
+    --header-bg: #342f27;
 }
 
 body {
     margin: 0;
     padding: 0;
-    background: #e7dcbd;
+    background: var(--default-bg);
     color: #1f2937;
 }
 
@@ -14,7 +17,7 @@ body {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
-    background: #342f27;
+    background: var(--header-bg);
     color: #fffee4;
     padding: 0.3rem 2rem;
     /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); */
@@ -316,6 +319,8 @@ details.console-panel > summary::-webkit-details-marker {
     font-size: 0.9rem;
 }
 
+/* Buttons */
+
 .btn {
     appearance: none;
     border: none;
@@ -323,7 +328,7 @@ details.console-panel > summary::-webkit-details-marker {
     padding: 0.45rem 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    background: #3b82f6;
+    background: #232933;
     color: white;
     transition: opacity 0.2s ease;
 }
@@ -333,7 +338,7 @@ details.console-panel > summary::-webkit-details-marker {
 }
 
 .btn.primary {
-    background: #0f172a;
+    background: #242a37;
 }
 
 .btn.ghost {
@@ -341,6 +346,8 @@ details.console-panel > summary::-webkit-details-marker {
     border: 1px solid rgba(15, 23, 42, 0.4);
     color: #0f172a;
 }
+
+/* Flash messages */
 
 .flash-container {
     margin: 1rem 0;
