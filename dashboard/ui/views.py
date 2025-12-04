@@ -1,14 +1,15 @@
 from __future__ import annotations
-
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Callable, Dict, List, Sequence
-
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-
+from django.urls import reverse
+from django.views.decorators.http import require_GET
 from .services import ControlApiClient, ControlApiError
+from .kafka_tail import TailSample, initial_tails, fetch_tail, TAIL_LIMIT
+from shared.kafka.constants import KAFKA_PROCESSED_TOPIC, KAFKA_RAW_TOPIC
 
 
 def _positive_int(value: str) -> int:
@@ -45,7 +46,8 @@ class ConfigField:
 def _fetcher_metrics(metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [
         {"label": "Last Fetch Size", "value": metadata.get("fetched")},
-        {"label": "Sent to Kafka", "value": metadata.get("sent_to_kafka")},
+        {"label": "Sent to Kafka (total)", "value": metadata.get("sent_to_kafka")},
+        {"label": "Last Batch Sent", "value": metadata.get("last_sent")},
         {"label": "Default Limit", "value": metadata.get("fetch_limit")},
         {"label": "Loop Delay (s)", "value": metadata.get("loop_delay")},
     ]
@@ -106,7 +108,54 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         return redirect("dashboard")
 
     services = _build_service_context(clients)
-    return render(request, "dashboard.html", {"services": services})
+    tails = initial_tails()
+    context = {
+        "services": services,
+        "kafka_tails": {key: _serialize_tail(samples) for key, samples in tails.items()},
+        "kafka_urls": {
+            "raw": reverse("kafka-tail", kwargs={"stream": "raw"}),
+            "processed": reverse("kafka-tail", kwargs={"stream": "processed"}),
+        },
+        "state_url": reverse("service-state"),
+    }
+    return render(request, "dashboard.html", context)
+
+
+@require_GET
+def service_state(request: HttpRequest) -> JsonResponse:
+    clients = _build_clients()
+    services = _build_service_context(clients)
+    return JsonResponse({"services": services})
+
+
+TAIL_TOPIC_MAP = {
+    "raw": KAFKA_RAW_TOPIC,
+    "processed": KAFKA_PROCESSED_TOPIC,
+}
+
+
+@require_GET
+def kafka_tail(request: HttpRequest, stream: str) -> JsonResponse:
+    topic = TAIL_TOPIC_MAP.get(stream)
+    if not topic:
+        return JsonResponse({"error": "Unknown stream"}, status=404)
+
+    try:
+        limit = int(request.GET.get("limit", TAIL_LIMIT))
+    except ValueError:
+        limit = TAIL_LIMIT
+
+    limit = max(1, min(limit, 100))
+
+    try:
+        samples = fetch_tail(topic, limit=limit)
+    except Exception as exc:  # pragma: no cover - observational logging surface
+        return JsonResponse({"error": str(exc)}, status=502)
+
+    return JsonResponse({
+        "stream": stream,
+        "messages": [_serialize_tail_entry(sample) for sample in samples],
+    })
 
 
 def _handle_post(request: HttpRequest, clients: Dict[str, ControlApiClient]) -> None:
@@ -212,3 +261,11 @@ def _build_service_context(clients: Dict[str, ControlApiClient]) -> List[Dict[st
         )
 
     return services
+
+
+def _serialize_tail(samples: Sequence[TailSample]) -> List[Dict[str, Any]]:
+    return [_serialize_tail_entry(sample) for sample in samples]
+
+
+def _serialize_tail_entry(sample: TailSample) -> Dict[str, Any]:
+    return asdict(sample)

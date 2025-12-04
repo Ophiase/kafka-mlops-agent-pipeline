@@ -3,25 +3,65 @@
 {% block title %}DashBoard · Control{% endblock %}
 
 {% block content %}
-{% if messages %}
-<section class="flash-container">
-    {% for message in messages %}
-    <div class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</div>
-    {% endfor %}
-</section>
-{% endif %}
-<section class="card-grid">
+<div id="dashboard-root"
+     data-state-url="{{ state_url }}"
+     data-kafka-raw-url="{{ kafka_urls.raw }}"
+     data-kafka-processed-url="{{ kafka_urls.processed }}">
+    <section class="console-grid">
+        <article class="console-panel console-panel--events">
+            <header class="console-panel__header">
+                <h2>Service Console</h2>
+                <div class="console-actions">
+                    <button type="button" class="btn ghost" data-action="clear-console">Clear</button>
+                </div>
+            </header>
+            <div class="console-log" data-console-log="events">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="console-entry console-entry--{{ message.tags|default:'info' }}">
+                        <div class="console-entry__meta">[{{ message.tags|default:'info'|upper }}]</div>
+                        <pre>{{ message }}</pre>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="console-placeholder">No events yet.</div>
+                {% endif %}
+            </div>
+        </article>
+
+        <details class="console-panel console-panel--raw" data-kafka-console="raw" data-fetch-url="{{ kafka_urls.raw }}" open>
+            <summary>Raw Kafka Stream Tail</summary>
+            <div class="console-actions">
+                <button type="button" class="btn ghost" data-action="refresh-tail" data-stream="raw">Refresh</button>
+            </div>
+            <div class="console-log" data-console-log="raw">
+                {% include "partials/_kafka_tail.html" with samples=kafka_tails.raw %}
+            </div>
+        </details>
+
+        <details class="console-panel console-panel--processed" data-kafka-console="processed" data-fetch-url="{{ kafka_urls.processed }}" open>
+            <summary>Processed Kafka Stream Tail</summary>
+            <div class="console-actions">
+                <button type="button" class="btn ghost" data-action="refresh-tail" data-stream="processed">Refresh</button>
+            </div>
+            <div class="console-log" data-console-log="processed">
+                {% include "partials/_kafka_tail.html" with samples=kafka_tails.processed %}
+            </div>
+        </details>
+    </section>
+
+    <section class="card-grid" data-service-grid>
     {% for service in services %}
-    <article class="card">
+    <article class="card" data-service="{{ service.key }}">
         <header class="card-header">
             <h2>{{ service.label }}</h2>
-            <span class="phase-badge phase-{{ service.phase|default:'unknown' }}">{{ service.phase|upper }}</span>
+            <span class="phase-badge phase-{{ service.phase|default:'unknown' }}" data-phase>{{ service.phase|upper }}</span>
         </header>
-        <p class="muted">Iterations: {{ service.iterations }}</p>
-        {% if service.last_error %}
-        <p class="error-text">Last error: {{ service.last_error }}</p>
-        {% endif %}
-        <ul class="metrics">
+        <p class="muted" data-iterations>Iterations: {{ service.iterations }}</p>
+        <p class="error-text" data-last-error {% if not service.last_error %}hidden{% endif %}>
+            Last error: <span>{{ service.last_error }}</span>
+        </p>
+        <ul class="metrics" data-metrics>
             {% for metric in service.metrics %}
             <li>
                 <span class="metric-label">{{ metric.label }}</span>
@@ -74,4 +114,5 @@
     </article>
     {% endfor %}
 </section>
+</div>
 {% endblock %}

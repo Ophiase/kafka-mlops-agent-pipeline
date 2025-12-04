@@ -1,0 +1,10 @@
+{% if samples %}
+    {% for sample in samples %}
+    <div class="console-entry">
+        <div class="console-entry__meta">[p{{ sample.partition }} · offset {{ sample.offset }}] {{ sample.timestamp|default:"" }}</div>
+        <pre>{{ sample.value }}</pre>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="console-placeholder">No messages yet.</div>
+{% endif %}

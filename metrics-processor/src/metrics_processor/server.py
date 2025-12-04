@@ -38,7 +38,7 @@ class Server(BaseService):
         })
 
     def run(self) -> None:
-        print("Metrics Processor Server is Listening...")
+        self._log("Metrics Processor Server is Listening...")
         self.start()
         self.wait()
 
@@ -72,6 +72,7 @@ class Server(BaseService):
             # Pull messages from Kafka
             raw_messages = self.pull_messages(consumer)
             if not raw_messages or len(raw_messages) == 0:
+                self._log("No Kafka messages available on this iteration")
                 snapshot = {
                     "received": 0,
                     "processed": 0,
@@ -82,11 +83,13 @@ class Server(BaseService):
                 return {**snapshot, "messages": [], "processed_messages": []}
 
             # Process messages
+            self._log(f"Processing {len(raw_messages)} message(s) via LLM")
             processed_messages = self.processor(raw_messages)
 
             # Send to Kafka
             if send_to_kafka and processed_messages:
                 self.sender(processed_messages)
+                self._log(f"Sent {len(processed_messages)} processed message(s) to Kafka")
 
             snapshot = {
                 "received": len(raw_messages),
@@ -126,8 +129,13 @@ class Server(BaseService):
                     print("Error decoding message:", decode_error)
 
         if len(result) != n_messages:
-            print(
+            self._log(
                 f"Warning: Expected {n_messages} messages, but decoded {len(result)}")
+
+        if result:
+            self._log(f"Kafka consumer delivered {len(result)} message(s)")
+        else:
+            self._log("Kafka consumer poll returned empty payload")
 
         return result
 

@@ -22,9 +22,11 @@ class Server(BaseService):
         self.fetcher = Fetcher(access_token)
         self.sender = Sender()
         self._default_limit = fetch_limit
+        self._total_sent = 0
         self._state.metadata.update({
             "fetch_limit": self._default_limit,
             "loop_delay": self._loop_delay,
+            "sent_to_kafka": self._total_sent,
         })
 
     def run(self) -> None:
@@ -58,10 +60,15 @@ class Server(BaseService):
         posts = self.fetcher(limit=limit)
         if send_to_kafka and posts:
             self.sender(posts)
+        last_sent = len(posts) if send_to_kafka else 0
+        if send_to_kafka:
+            self._total_sent += last_sent
+
         metadata = {
             "limit": limit,
             "fetched": len(posts),
-            "sent_to_kafka": len(posts) if send_to_kafka else 0,
+            "sent_to_kafka": self._total_sent,
+            "last_sent": last_sent,
             "send_to_kafka": send_to_kafka,
         }
         self._state.metadata.update(metadata)

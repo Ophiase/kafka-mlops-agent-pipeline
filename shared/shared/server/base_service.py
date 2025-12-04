@@ -24,6 +24,7 @@ class BaseService(ABC):
                 return
             self._stop_event.clear()
             self._state.mark(ServicePhase.STARTING)
+            self._log("Starting background loop")
             self._thread = threading.Thread(
                 target=self._loop_entrypoint,
                 name=f"{self.__class__.__name__}Loop",
@@ -38,12 +39,15 @@ class BaseService(ABC):
             thread = self._thread
             if not thread:
                 self._state.mark(ServicePhase.STOPPED)
+                self._log("Stop requested but loop is not running")
                 return
             self._state.mark(ServicePhase.STOPPING)
+            self._log("Stop signal sent; waiting for loop to exit" if wait else "Stop signal sent")
             self._stop_event.set()
 
         if wait:
             thread.join()
+            self._log("Loop joined")
 
         with self._lock:
             self._thread = None
@@ -76,6 +80,7 @@ class BaseService(ABC):
 
     def _loop_entrypoint(self) -> None:
         self._state.mark(ServicePhase.RUNNING)
+        self._log("Loop entered; processing iterations")
         try:
             while not self._stop_event.is_set():
                 try:
@@ -95,15 +100,20 @@ class BaseService(ABC):
         finally:
             self._stop_event.clear()
             self._state.mark(ServicePhase.STOPPED)
+            self._log("Loop stopped")
             self._on_loop_stopped()
 
     def _execute_iteration(self, **kwargs: Any) -> Dict[str, Any]:
+        iteration_number = self._state.iterations + 1
+        self._log(f"Iteration {iteration_number} started")
         try:
             result = self._run_iteration(**kwargs)
             self._state.increment_iterations()
+            self._log(f"Iteration {iteration_number} completed")
             return result
         except Exception as exc:
             self._state.mark(ServicePhase.ERROR, error=str(exc))
+            self._log(f"Iteration {iteration_number} failed: {exc}")
             raise
 
     def _loop_iteration_kwargs(self) -> Dict[str, Any]:
@@ -116,9 +126,12 @@ class BaseService(ABC):
         """Concrete services must implement one unit of work."""
 
     def _handle_iteration_error(self, exc: Exception) -> None:
-        print(f"[{self.__class__.__name__}] Error during iteration: {exc}")
+        self._log(f"Error during iteration: {exc}")
 
     def _on_loop_stopped(self) -> None:
         """Hook for subclasses to release resources when the loop exits."""
 
         return None
+
+    def _log(self, message: str) -> None:
+        print(f"[{self.__class__.__name__}] {message}")
