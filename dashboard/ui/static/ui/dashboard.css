@@ -4,6 +4,8 @@
 
     --default-bg: #e7dcbd;
     --header-bg: #342f27;
+
+    --default-radius: 5px;
 }
 
 body {
@@ -48,18 +50,21 @@ main {
     gap: 2rem;
 }
 
+/* Console Panels */
+
 .console-grid {
     display: grid;
     gap: 1rem;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+/* The container around a console */
 .console-panel {
-    background: #1d2330;
-    border-radius: 12px;
+    /* background: #1d2330; */
+    border-radius: var(--default-radius);
     padding: 1rem;
     border: 1px solid rgba(248, 250, 252, 0.15);
-    color: #f8fafc;
+    /* color: #f8fafc; */
 }
 
 .console-panel summary {
@@ -96,8 +101,10 @@ details.console-panel > summary::-webkit-details-marker {
 }
 
 .console-log {
-    background: rgba(15, 23, 42, 0.6);
-    border-radius: 10px;
+    /* The text area containing console entries */
+    background: rgb(255, 244, 213);
+    border-radius: var(--default-radius);
+    border-color: rgba(15, 23, 42, 0.2);
     padding: 0.75rem;
     max-height: 240px;
     overflow-y: auto;
@@ -132,23 +139,12 @@ details.console-panel > summary::-webkit-details-marker {
 }
 
 .console-panel--events {
-    background: #1f2937;
+    /* background: #a2aab7; */
+    border-color: rgba(15, 23, 42, 0.2);
 }
 
-.console-panel--raw {
-    background: #0f172a;
-}
-
-.console-panel--processed {
-    background: #14532d;
-}
-
-.console-panel--raw .console-entry__meta {
+.console-panel .console-entry__meta {
     color: #38bdf8;
-}
-
-.console-panel--processed .console-entry__meta {
-    color: #bbf7d0;
 }
 
 .console-panel--events .console-entry__meta {
@@ -174,8 +170,8 @@ details.console-panel > summary::-webkit-details-marker {
 }
 
 .card {
-    background: #d2c9a4;
-    border-radius: 12px;
+    background: #f2e6c4;
+    border-radius: var(--default-radius);
     padding: 1.5rem;
     /* box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12); */
 }
@@ -358,7 +354,7 @@ details.console-panel > summary::-webkit-details-marker {
 
 .flash {
     padding: 0.65rem 0.9rem;
-    border-radius: 10px;
+    border-radius: var(--default-radius);
     font-weight: 600;
 }
 
