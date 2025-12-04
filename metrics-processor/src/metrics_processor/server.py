@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 import json
 import threading
 from typing import Any, Dict, List, Optional
+
 from kafka import KafkaConsumer
 
-from constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
-from processor import Processor
-from sender import Sender
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
 from shared.server import BaseService
+
+from .constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
+from .processor import Processor
+from .sender import Sender
 
 
 class Server(BaseService):

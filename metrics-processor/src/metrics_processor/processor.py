@@ -1,10 +1,12 @@
 import json
-from typing import List, Dict, Any
-from constants import OLLAMA_MODEL, OLLAMA_SERVER_URL, OLLAMA_SERVER_PORT
-from langchain_ollama import ChatOllama
-from langchain.messages import SystemMessage, HumanMessage
-from pathlib import Path
 import re
+from pathlib import Path
+from typing import Any, Dict, List
+
+from langchain.messages import HumanMessage, SystemMessage
+from langchain_ollama import ChatOllama
+
+from .constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 
 
 class Processor:

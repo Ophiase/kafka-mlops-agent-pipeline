@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 import os
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from server import Server
+
+from .server import Server
 
 AUTO_START = os.getenv("PROCESSOR_AUTO_START", "true").lower() in {"1", "true", "yes"}
 
