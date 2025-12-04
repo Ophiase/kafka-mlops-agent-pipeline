@@ -13,9 +13,11 @@
     <section class="card-grid" data-service-grid>
         {% with fetcher=service_lookup.fetcher processor=service_lookup.processor %}
             {% if fetcher %}
+                <!-- Fetcher -->
                 {% include "partials/dashboard/_service_card.html" with service=fetcher %}
             {% endif %}
             {% if processor %}
+                <!-- Processor -->
                 {% include "partials/dashboard/_service_card.html" with service=processor %}
             {% endif %}
         {% endwith %}
