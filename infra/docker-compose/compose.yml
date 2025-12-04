@@ -37,6 +37,8 @@ services:
     container_name: mastodon-fetcher
     environment:
       FETCH_INTERVAL_MS: "5000"
+      FETCHER_API_PORT: "8001"
+      FETCHER_AUTO_START: "true"
     depends_on:
       kafka:
         condition: service_healthy #service_started
@@ -44,6 +46,8 @@ services:
       - ../../mastodon-fetcher:/app
       - ../../shared:/shared
       - ./secrets:/secrets:ro
+    ports:
+      - "58101:8001"
     networks:
       - internal
   
@@ -56,9 +60,14 @@ services:
     volumes:
       - ../../metrics-processor:/app
       - ../../shared:/shared
+    environment:
+      PROCESSOR_API_PORT: "8002"
+      PROCESSOR_AUTO_START: "true"
     depends_on:
       kafka:
         condition: service_healthy
+    ports:
+      - "58102:8002"
     networks:
       - internal
   
@@ -73,6 +82,9 @@ services:
     volumes:
       - ../../dashboard:/app
       - ../../shared:/shared
+    environment:
+      FETCHER_API_URL: "http://mastodon-fetcher:8001"
+      PROCESSOR_API_URL: "http://metrics-processor:8002"
     networks:
       - internal
 

@@ -4,7 +4,17 @@ version = "0.1.0"
 description = "Server to fetch data from Mastodon instances and send them to Kafka"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["Mastodon.py", "kafka-python", "shared"]
+dependencies = ["Mastodon.py", "fastapi", "kafka-python", "shared", "uvicorn"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv.sources]
 shared = { path = "../shared" }

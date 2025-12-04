@@ -1,34 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %}DashBoard · Overview{% endblock %}
+{% block title %}DashBoard · Control{% endblock %}
 
 {% block content %}
+{% if messages %}
+<section class="flash-container">
+    {% for message in messages %}
+    <div class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+</section>
+{% endif %}
 <section class="card-grid">
+    {% for service in services %}
     <article class="card">
-        <h2>Fetcher</h2>
+        <header class="card-header">
+            <h2>{{ service.label }}</h2>
+            <span class="phase-badge phase-{{ service.phase|default:'unknown' }}">{{ service.phase|upper }}</span>
+        </header>
+        <p class="muted">Iterations: {{ service.iterations }}</p>
+        {% if service.last_error %}
+        <p class="error-text">Last error: {{ service.last_error }}</p>
+        {% endif %}
         <ul class="metrics">
+            {% for metric in service.metrics %}
             <li>
-                <span class="metric-label">Fetched</span>
-                <span class="metric-value">{{ fetcher.number_fetched }}</span>
+                <span class="metric-label">{{ metric.label }}</span>
+                <span class="metric-value">{{ metric.value|default:"—" }}</span>
             </li>
-            <li>
-                <span class="metric-label">Sent to Kafka</span>
-                <span class="metric-value">{{ fetcher.number_sent_to_kafka }}</span>
-            </li>
+            {% endfor %}
         </ul>
+        <div class="card-actions">
+            <form method="post" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="service" value="{{ service.key }}" />
+                <button class="btn" name="action" value="start" type="submit">Start</button>
+                <button class="btn ghost" name="action" value="stop" type="submit">Stop</button>
+            </form>
+            <form method="post" class="run-form">
+                {% csrf_token %}
+                <input type="hidden" name="service" value="{{ service.key }}" />
+                <input type="hidden" name="action" value="run" />
+                {% if service.supports_limit %}
+                <label class="field">
+                    Limit
+                    <input type="number" name="limit" min="1" placeholder="{{ service.metadata.fetch_limit|default:'limit' }}" />
+                </label>
+                {% endif %}
+                <label class="checkbox-row">
+                    <input type="checkbox" name="send_to_kafka" value="on" checked />
+                    <span>Send to Kafka</span>
+                </label>
+                <button class="btn primary" type="submit">Run Once</button>
+            </form>
+            {% if service.config_fields %}
+            <form method="post" class="run-form">
+                {% csrf_token %}
+                <input type="hidden" name="service" value="{{ service.key }}" />
+                <input type="hidden" name="action" value="configure" />
+                {% for field in service.config_fields %}
+                <label class="field">
+                    {{ field.label }}
+                    <input type="{{ field.input_type }}" name="{{ field.name }}"
+                        {% if field.min %}min="{{ field.min }}"{% endif %}
+                        {% if field.step %}step="{{ field.step }}"{% endif %}
+                        value="{{ field.value|default:'' }}"
+                        placeholder="{{ field.value|default:'value' }}" />
+                </label>
+                {% endfor %}
+                <button class="btn" type="submit">Update Config</button>
+            </form>
+            {% endif %}
+        </div>
     </article>
-    <article class="card">
-        <h2>Processor</h2>
-        <ul class="metrics">
-            <li>
-                <span class="metric-label">In Process</span>
-                <span class="metric-value">{{ processor.in_process }}</span>
-            </li>
-            <li>
-                <span class="metric-label">Sent to Kafka</span>
-                <span class="metric-value">{{ processor.number_sent_to_kafka }}</span>
-            </li>
-        </ul>
-    </article>
+    {% endfor %}
 </section>
 {% endblock %}

@@ -13,6 +13,13 @@
         <p>Kafka pipeline status at a glance.</p>
     </header>
     <main>
+        {% if messages %}
+        <section class="flash-container">
+            {% for message in messages %}
+            <p class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</p>
+            {% endfor %}
+        </section>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 </body>

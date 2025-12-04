@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import Any, Dict, Optional
-from constants import FETCH_INTERVAL_MS, FETCH_NUMBER
-from fetcher import Fetcher
-from secrets import MASTODON_ACCESS_TOKEN
-from sender import Sender
 from shared.server import BaseService
+from .constants import FETCH_INTERVAL_MS, FETCH_NUMBER
+from .fetcher import Fetcher
+from .secrets import MASTODON_ACCESS_TOKEN
+from .sender import Sender
 
 DEFAULT_LOOP_DELAY = FETCH_INTERVAL_MS / 1000
 

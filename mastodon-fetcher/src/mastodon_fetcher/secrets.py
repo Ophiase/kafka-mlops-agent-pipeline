@@ -18,7 +18,7 @@ def try_read_file(file_path: str) -> Optional[str]:
         return None
 
 
-def populate_constants():
+def populate_constants() -> None:
     if not os.path.exists(SECRET_FOLDER):
         print(f"Warning: Secret folder '{SECRET_FOLDER}' does not exist.")
         return

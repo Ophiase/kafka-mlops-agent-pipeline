@@ -8,8 +8,9 @@ from .service_state import ServicePhase, ServiceState
 class BaseService(ABC):
     """Reusable lifecycle helpers for controllable services."""
 
-    def __init__(self, *, loop_delay: float = 0.0):
+    def __init__(self, *, loop_delay: float = 0.0, error_backoff: float = 5.0):
         self._loop_delay = max(0.0, loop_delay)
+        self._error_backoff = max(0.0, error_backoff)
         self._state = ServiceState()
         self._lock = threading.RLock()
         self._stop_event = threading.Event()
@@ -77,16 +78,24 @@ class BaseService(ABC):
         self._state.mark(ServicePhase.RUNNING)
         try:
             while not self._stop_event.is_set():
-                self._execute_iteration(**self._loop_iteration_kwargs())
-                if self._loop_delay:
-                    if self._stop_event.wait(self._loop_delay):
+                try:
+                    self._execute_iteration(**self._loop_iteration_kwargs())
+                except Exception as exc:  # pragma: no cover - surfaced via logs
+                    self._handle_iteration_error(exc)
+                    if self._stop_event.wait(self._error_backoff):
                         break
-        except Exception as exc:  # pragma: no cover - surfaced via logs
-            # Surface the error state and drop out of the loop.
-            self._state.mark(ServicePhase.ERROR, error=str(exc))
+                    # Expose that the loop recovered from an error without dropping
+                    # the previous error message.
+                    self._state.mark(ServicePhase.RUNNING,
+                                     error=self._state.last_error)
+                    continue
+
+                if self._loop_delay and self._stop_event.wait(self._loop_delay):
+                    break
         finally:
             self._stop_event.clear()
             self._state.mark(ServicePhase.STOPPED)
+            self._on_loop_stopped()
 
     def _execute_iteration(self, **kwargs: Any) -> Dict[str, Any]:
         try:
@@ -105,3 +114,11 @@ class BaseService(ABC):
     @abstractmethod
     def _run_iteration(self, **kwargs: Any) -> Dict[str, Any]:
         """Concrete services must implement one unit of work."""
+
+    def _handle_iteration_error(self, exc: Exception) -> None:
+        print(f"[{self.__class__.__name__}] Error during iteration: {exc}")
+
+    def _on_loop_stopped(self) -> None:
+        """Hook for subclasses to release resources when the loop exits."""
+
+        return None

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import secrets
 
@@ -15,6 +16,9 @@ SECRET_KEY = secrets.token_urlsafe(50)
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+FETCHER_API_URL = os.getenv("FETCHER_API_URL", "http://localhost:58101")
+PROCESSOR_API_URL = os.getenv("PROCESSOR_API_URL", "http://localhost:58102")
 
 
 # Application definition

@@ -6,11 +6,13 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "ipykernel",
-	"langchain",
+    "langchain",
     "langchain-community",
     "langchain-ollama",
+    "fastapi",
     "kafka-python",
-    "shared"
+    "shared",
+    "uvicorn",
 ]
 
 [tool.uv.sources]

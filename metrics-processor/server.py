@@ -1,7 +1,9 @@
 from __future__ import annotations
 import json
+import threading
 from typing import Any, Dict, List, Optional
 from kafka import KafkaConsumer
+
 from constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 from processor import Processor
 from sender import Sender
@@ -10,7 +12,6 @@ from shared.server import BaseService
 
 
 class Server(BaseService):
-    consumer: KafkaConsumer
     processor: Processor
     sender: Sender
 
@@ -21,11 +22,8 @@ class Server(BaseService):
         super().__init__(loop_delay=0.0)
         self.timeout_ms = timeout_ms
         self.max_records = max_records
-        self.consumer = KafkaConsumer(
-            KAFKA_RAW_TOPIC,
-            bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
-            auto_offset_reset="earliest",
-        )
+        self._consumer: Optional[KafkaConsumer] = None
+        self._consumer_owner: Optional[int] = None
         self.processor = Processor(
             model=OLLAMA_MODEL,
             base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}",
@@ -65,36 +63,42 @@ class Server(BaseService):
         Execute a single processing iteration.
         Returns a snapshot of the iteration results.
         """
-        raw_messages = self.pull_messages()
-        if not raw_messages:
+        release_after_iteration = not self.is_running
+        consumer = self._acquire_consumer()
+        try:
+            raw_messages = self.pull_messages(consumer)
+            if not raw_messages:
+                snapshot = {
+                    "received": 0,
+                    "processed": 0,
+                    "sent": 0,
+                    "send_to_kafka": send_to_kafka,
+                }
+                self._state.metadata.update(snapshot)
+                return {**snapshot, "messages": [], "processed_messages": []}
+
+            processed_messages = self.processor(raw_messages)
+            if send_to_kafka and processed_messages:
+                self.sender(processed_messages)
+
             snapshot = {
-                "received": 0,
-                "processed": 0,
-                "sent": 0,
+                "received": len(raw_messages),
+                "processed": len(processed_messages),
+                "sent": len(processed_messages) if send_to_kafka else 0,
                 "send_to_kafka": send_to_kafka,
             }
             self._state.metadata.update(snapshot)
-            return {**snapshot, "messages": [], "processed_messages": []}
+            return {
+                **snapshot,
+                "messages": raw_messages,
+                "processed_messages": processed_messages,
+            }
+        finally:
+            if release_after_iteration:
+                self._release_consumer()
 
-        processed_messages = self.processor(raw_messages)
-        if send_to_kafka and processed_messages:
-            self.sender(processed_messages)
-
-        snapshot = {
-            "received": len(raw_messages),
-            "processed": len(processed_messages),
-            "sent": len(processed_messages) if send_to_kafka else 0,
-            "send_to_kafka": send_to_kafka,
-        }
-        self._state.metadata.update(snapshot)
-        return {
-            **snapshot,
-            "messages": raw_messages,
-            "processed_messages": processed_messages,
-        }
-
-    def pull_messages(self) -> Optional[List[Dict[str, Any]]]:
-        raw_messages = self.consumer.poll(
+    def pull_messages(self, consumer: KafkaConsumer) -> Optional[List[Dict[str, Any]]]:
+        raw_messages = consumer.poll(
             timeout_ms=self.timeout_ms,
             max_records=self.max_records,
         )
@@ -119,3 +123,28 @@ class Server(BaseService):
                 f"Warning: Expected {n_messages} messages, but decoded {len(result)}")
 
         return result
+
+    def _acquire_consumer(self) -> KafkaConsumer:
+        caller = threading.get_ident()
+        if self._consumer is None:
+            self._consumer = KafkaConsumer(
+                KAFKA_RAW_TOPIC,
+                bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
+                auto_offset_reset="earliest",
+            )
+            self._consumer_owner = caller
+        elif self._consumer_owner != caller:
+            raise RuntimeError(
+                "KafkaConsumer is tied to the running loop; stop it before running a manual iteration."
+            )
+        return self._consumer
+
+    def _release_consumer(self) -> None:
+        if self._consumer is None:
+            return
+        self._consumer.close()
+        self._consumer = None
+        self._consumer_owner = None
+
+    def _on_loop_stopped(self) -> None:
+        self._release_consumer()

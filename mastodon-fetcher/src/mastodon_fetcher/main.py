@@ -1,7 +1,7 @@
-from server import Server
+from .server import Server
 
 
-def main():
+def main() -> None:
     print("Starting Mastodon Fetcher Server...")
     print("-" * 20)
     Server().run()
