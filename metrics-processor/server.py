@@ -66,8 +66,9 @@ class Server(BaseService):
         release_after_iteration = not self.is_running
         consumer = self._acquire_consumer()
         try:
+            # Pull messages from Kafka
             raw_messages = self.pull_messages(consumer)
-            if not raw_messages:
+            if not raw_messages or len(raw_messages) == 0:
                 snapshot = {
                     "received": 0,
                     "processed": 0,
@@ -77,7 +78,10 @@ class Server(BaseService):
                 self._state.metadata.update(snapshot)
                 return {**snapshot, "messages": [], "processed_messages": []}
 
+            # Process messages
             processed_messages = self.processor(raw_messages)
+
+            # Send to Kafka
             if send_to_kafka and processed_messages:
                 self.sender(processed_messages)
 
