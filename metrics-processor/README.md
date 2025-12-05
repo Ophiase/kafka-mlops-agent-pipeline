@@ -28,5 +28,8 @@ You can see the default values in `constants.py`.
 
 ```bash
 uv sync
-uv run main.py
+# cli mode
+uv run src.metrics_processor.main
+# exposed api mode (for dashboard integration)
+uv run uvicorn src.metrics_processor.api:app --host localhost --port 8002
 ```
