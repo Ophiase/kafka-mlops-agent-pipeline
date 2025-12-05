@@ -8,3 +8,19 @@ def build_posts_xy():
         (POST_02, POST_LABEL_02),
         (POST_03, POST_LABEL_03),
     ]
+
+
+def verify_post(post: dict, expected_label: str):
+    label = ""
+
+
+def main():
+    posts_xy = build_posts_xy()
+    for post, label in posts_xy:
+        print("POST:", post)
+        print("LABEL:", label)
+        print()
+
+
+if __name__ == "__main__":
+    main()

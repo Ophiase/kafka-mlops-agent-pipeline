@@ -34,5 +34,6 @@ uv sync --refresh # to force reinstallation of dependencies without cache
 uv run src.metrics_processor.main
 # exposed api mode (for dashboard integration)
 uv run uvicorn src.metrics_processor.api:app --host localhost --port 8002
+# test the agent
+uv run tests.test_inference
 ```
- 
