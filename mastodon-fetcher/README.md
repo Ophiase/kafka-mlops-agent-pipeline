@@ -22,10 +22,9 @@ You can see the default values in `constants.py`.
 ## Quickstart
 
 ```bash
-# compile the environment
-uv sync
+uv sync --refresh # to force reinstallation of dependencies without cache
 # classic run
 uv run src.mastodon_fetcher.main
 # or run the exposed API
-uv run uvicorn src.mastodon_fetcher.api:app --host 0.0.0.0 --port ${FETCHER_API_PORT:-8001}
+uv run uvicorn src.mastodon_fetcher.api:app --host localhost --port ${FETCHER_API_PORT:-8001}
 ```
