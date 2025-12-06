@@ -911,6 +911,7 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-ollama" },
+    { name = "langgraph" },
     { name = "shared" },
     { name = "uvicorn" },
 ]
@@ -923,6 +924,7 @@ requires-dist = [
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-ollama" },
+    { name = "langgraph" },
     { name = "shared", directory = "../shared" },
     { name = "uvicorn" },
 ]
