@@ -168,7 +168,63 @@ class Processor:
 
         except json.JSONDecodeError:
             print("[Processor] Failed to decode JSON response.")
+            fallback = self._best_effort_parse(response, expected_count)
+            if fallback is not None:
+                return fallback
             return [None] * expected_count
         except Exception as exc:
             print(f"[Processor] Unexpected error parsing response: {exc}")
             return [None] * expected_count
+
+    def _best_effort_parse(self, response: str, expected_count: int) -> Optional[List[Optional[str]]]:
+        """Attempts a tolerant parse when the LLM returns slightly invalid JSON.
+
+        This primarily escapes stray quotes inside the explanation field (e.g.,
+        "The \"Samstag Show\" ...") that otherwise break strict JSON parsing.
+        Returns None if parsing still fails.
+        """
+
+        objects = re.findall(r"\{[^}]*\}", response, re.DOTALL)
+        if not objects:
+            return None
+
+        parsed: List[str] = []
+        for raw_obj in objects:
+            normalized = self._escape_explanation_quotes(raw_obj)
+            try:
+                data_obj = json.loads(normalized)
+                parsed.append(json.dumps(data_obj))
+            except json.JSONDecodeError:
+                continue
+
+        if len(parsed) != expected_count:
+            return None
+
+        return parsed
+
+    def _escape_explanation_quotes(self, raw_obj: str) -> str:
+        """Escapes unescaped quotes in the explanation field within a JSON object string."""
+
+        parts = raw_obj.split('"explanation":', 1)
+        if len(parts) != 2:
+            return raw_obj
+
+        head, tail = parts
+        tail_stripped = tail.lstrip()
+
+        if not tail_stripped.startswith('"'):
+            return raw_obj
+
+        # Drop the leading quote for analysis
+        body = tail_stripped[1:]
+        closing_idx = body.rfind('"')
+        if closing_idx == -1:
+            return raw_obj
+
+        value = body[:closing_idx]
+        rest = body[closing_idx + 1:]
+
+        escaped_value = value.replace('"', '\\"')
+        rebuilt_tail = f' "{escaped_value}"{rest}'
+
+        return head + '"explanation":' + rebuilt_tail
