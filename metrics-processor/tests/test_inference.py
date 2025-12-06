@@ -1,7 +1,8 @@
 from pprint import pprint
+import json
 from typing import Dict, Any, List
 from .dummy_posts import *
-from metrics_processor.processor import Processor
+from src.metrics_processor.processor import Processor
 
 
 def build_posts_xy():
@@ -14,8 +15,10 @@ def build_posts_xy():
 
 
 def build_processor() -> Processor:
-    print("Building Processor...")
-    return Processor()
+    print("Building Processor for localhost test ...")
+    OLLAMA_SERVER_URL = "localhost"
+    OLLAMA_SERVER_PORT = 11434
+    return Processor(base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}")
 
 
 def verify_output(
@@ -30,9 +33,10 @@ def verify_batch(
         expected_labels: List[Dict[str, str]]
 ) -> List[bool]:
     print("Verifying batch...")
-    processed_outputs = processor(posts)
-    print("Processed Outputs:")
-    zipped = zip(processed_outputs, expected_labels)
+    processed_outputs: List[str] = processor(posts)
+    json_outputs = [json.loads(output) for output in processed_outputs]
+    print("Outputs processed...")
+    zipped = zip(json_outputs, expected_labels)
     results = [
         verify_output(output, expected_label)
         for output, expected_label in zipped
