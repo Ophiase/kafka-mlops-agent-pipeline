@@ -69,3 +69,22 @@ make port-forward # to open localhost:58005
 ```
 
 5. Open the front http://localhost:58005 to access the application.
+
+## Project Structure
+
+Microservices:
+- [`mastodon-fetcher/`](mastodon-fetcher/README.md): Service that fetches posts from a Mastodon instance.
+-  [`metrics-processor/`](metrics-processor/README.md): Service that processes fetched posts using a language model.
+- [`dashboard/`](dashboard/README.md): Django-based dashboard for visualizing and controlling the Mastodon agent.
+- [`llm-server/`](llm-server/README.md): Local LLM server setup using Ollama or vLLM.
+
+Infrastructure as a code:
+- `infra/`: Infrastructure configurations for Docker Compose and Kubernetes.
+    - `docker-compose/: Docker Compose setup for local development.
+    - [`k8s/`](infra/k8s/README.md): Kubernetes manifests and Helm charts for production-like deployments.
+- [`localstack/`](localstack/README.md): local AWS simulation using LocalStack (planned).
+- [`terraform/`](terraform/README.md): Infrastructure as Code (IaC) configurations using Terraform (planned).
+
+Other:
+- `documentation/`: Project documentation and resources.
+
