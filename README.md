@@ -26,9 +26,9 @@ The point is to learn building scalable architectures using:
 - ✅ Kafka for data streaming
     - ❌ TODO: Protobuf serialization
 - Dashboard
-    - Controller + Visualizer for the Mastodon agent
-    - Django Mono (backend + frontend)
-    - Next.js + Tailwind (frontend only) ❌ TODO: migrate to this
+    - ✅ Controller + Visualizer for the Mastodon agent
+    - ✅ Django Mono (backend + frontend)
+    - Next.js + Tailwind (frontend) ❌ TODO: migrate to this
 
 The word agent here refers to a stateless (no internal memory) automated event-based system. Perhaps, a more appropriate name would be "Mastodon Listener".
 
@@ -61,7 +61,7 @@ docker compose up -d --build
 cd infra/k8s
 make create-cluster
 
-make build # build the images if not done yet
+make build # build the images (if not done yet)
 make kind-load # load the images into the kind cluster
 
 make deploy # deploy the application
