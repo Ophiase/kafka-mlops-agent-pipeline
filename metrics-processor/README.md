@@ -31,9 +31,9 @@ You can see the default values in `constants.py`.
 ```bash
 uv sync --refresh # to force reinstallation of dependencies without cache
 # cli mode
-uv run python -m src.metrics_processor.main
+uv run -m src.metrics_processor.main
 # exposed api mode (for dashboard integration)
 uv run uvicorn src.metrics_processor.api:app --host localhost --port 8002
 # test the agent
-uv run python -m tests.test_inference
+uv run -m tests.test_inference
 ```
