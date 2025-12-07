@@ -2,6 +2,13 @@
 
 This module is responsible for processing and aggregating metrics data from posts coming through the Kafka topics. It then forwards the processed metrics to the designated output Kafka topic for further analysis or storage.
 
+The main component is the `processor.py` class. It creates a processing **langgraph** pipeline that ingests raw metrics data, performs necessary computations, and outputs the aggregated results. 
+
+It consists of three main nodes:
+- `pre_processor.py`: Cleans and formats the incoming raw metrics data.
+- `generator.py`: Uses an llm model to analyze the metrics and extract insights.
+- `post_processor.py`: Aggregates the processed data and prepares it for output.
+
 ## Setup
 
 ### Kafka Server
@@ -30,10 +37,14 @@ You can see the default values in `constants.py`.
 
 ```bash
 uv sync --refresh # to force reinstallation of dependencies without cache
-# cli mode
+
+# CLI mode
 uv run -m src.metrics_processor.main
-# exposed api mode (for dashboard integration)
+
+# Exposed api mode (for dashboard integration)
 uv run uvicorn src.metrics_processor.api:app --host localhost --port 8002
-# test the agent
+
+# Test the workflow on test data
+# It can directly be executed on the host without Kafka and Docker
 uv run -m tests.test_inference
 ```

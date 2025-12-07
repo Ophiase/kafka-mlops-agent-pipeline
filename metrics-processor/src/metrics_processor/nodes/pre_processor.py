@@ -2,15 +2,14 @@ import json
 import re
 from typing import Any, Dict, List
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-from langchain_ollama import ChatOllama
+from ..state import ProcessorState
 
-from .state import ProcessorState
-from .utils.json_utils import parse_llm_response
 
 class PreProcessor:
     """
     Node responsible for preparing the input posts for LLM processing.
     """
+
     def __init__(self, prompt_text: str):
         self.prompt_text = prompt_text
 
@@ -43,39 +42,3 @@ class PreProcessor:
             "id": str(post.get("id", "")),
             "text": text.strip(),
         }
-
-
-class Generator:
-    """
-    Node responsible for invoking the LLM.
-    """
-    def __init__(self, llm: ChatOllama):
-        self.llm = llm
-
-    def __call__(self, state: ProcessorState) -> Dict[str, Any]:
-        """
-        Invokes the LLM with the prepared messages and retrieves the response.
-        """
-        print("[LLM] Invoke...")
-        try:
-            response = self.llm.invoke(state["messages"])
-            content = str(response.content)
-            print("[LLM] Response received.")
-        except Exception as exc:
-            print(f"[LLM] Error during invocation: {exc}")
-            content = ""
-
-        if content:
-            print("[LLM] Response:\n", content)
-
-        return {"llm_response": content}
-
-
-class PostProcessor:
-    """
-    Node responsible for parsing the LLM response.
-    """
-    def __call__(self, state: ProcessorState) -> Dict[str, Any]:
-        expected = len(state["posts"])
-        results = parse_llm_response(state["llm_response"], expected)
-        return {"final_result": results}
