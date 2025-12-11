@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import threading
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
+
 from .service_state import ServicePhase, ServiceState
 
 
@@ -42,7 +44,11 @@ class BaseService(ABC):
                 self._log("Stop requested but loop is not running")
                 return
             self._state.mark(ServicePhase.STOPPING)
-            self._log("Stop signal sent; waiting for loop to exit" if wait else "Stop signal sent")
+            self._log(
+                "Stop signal sent; waiting for loop to exit"
+                if wait
+                else "Stop signal sent"
+            )
             self._stop_event.set()
 
         if wait:
@@ -67,8 +73,7 @@ class BaseService(ABC):
     def configure(self, **kwargs: Any) -> None:
         """Optional hook subclasses may override to tweak runtime options."""
 
-        raise NotImplementedError(
-            "configure() is not implemented for this service")
+        raise NotImplementedError("configure() is not implemented for this service")
 
     def status(self) -> ServiceState:
         return self._state
@@ -91,8 +96,7 @@ class BaseService(ABC):
                         break
                     # Expose that the loop recovered from an error without dropping
                     # the previous error message.
-                    self._state.mark(ServicePhase.RUNNING,
-                                     error=self._state.last_error)
+                    self._state.mark(ServicePhase.RUNNING, error=self._state.last_error)
                     continue
 
                 if self._loop_delay and self._stop_event.wait(self._loop_delay):

@@ -1,12 +1,21 @@
 from __future__ import annotations
+
 import json
 import threading
 from typing import Any, Dict, List, Optional
+
 from kafka import KafkaConsumer
+
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
 from shared.kafka.topics import ensure_topic_exists
 from shared.server import BaseService
-from .constants import KAFKA_GROUP_ID, OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
+
+from .constants import (
+    KAFKA_GROUP_ID,
+    OLLAMA_MODEL,
+    OLLAMA_SERVER_PORT,
+    OLLAMA_SERVER_URL,
+)
 from .processor import Processor
 from .sender import Sender
 
@@ -15,10 +24,7 @@ class Server(BaseService):
     processor: Processor
     sender: Sender
 
-    def __init__(self,
-                 *,
-                 timeout_ms: int = 1000,
-                 max_records: int = 5):
+    def __init__(self, *, timeout_ms: int = 1000, max_records: int = 5):
         super().__init__(loop_delay=0.0)
         self.timeout_ms = timeout_ms
         self.max_records = max_records
@@ -29,10 +35,12 @@ class Server(BaseService):
             base_url=f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}",
         )
         self.sender = Sender()
-        self._state.metadata.update({
-            "timeout_ms": self.timeout_ms,
-            "max_records": self.max_records,
-        })
+        self._state.metadata.update(
+            {
+                "timeout_ms": self.timeout_ms,
+                "max_records": self.max_records,
+            }
+        )
 
         ensure_topic_exists(
             bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
@@ -41,16 +49,14 @@ class Server(BaseService):
             replication_factor=1,
         )
 
-
     def run(self) -> None:
         self._log("Metrics Processor Server is Listening...")
         self.start()
         self.wait()
 
-    def configure(self,
-                  *,
-                  timeout_ms: Optional[int] = None,
-                  max_records: Optional[int] = None) -> None:
+    def configure(
+        self, *, timeout_ms: Optional[int] = None, max_records: Optional[int] = None
+    ) -> None:
         """
         Update the server configuration.
         """
@@ -58,10 +64,12 @@ class Server(BaseService):
             self.timeout_ms = timeout_ms
         if max_records is not None and max_records > 0:
             self.max_records = max_records
-        self._state.metadata.update({
-            "timeout_ms": self.timeout_ms,
-            "max_records": self.max_records,
-        })
+        self._state.metadata.update(
+            {
+                "timeout_ms": self.timeout_ms,
+                "max_records": self.max_records,
+            }
+        )
 
     def _loop_iteration_kwargs(self) -> Dict[str, Any]:
         return {"send_to_kafka": True}
@@ -96,7 +104,8 @@ class Server(BaseService):
             if send_to_kafka and processed_messages:
                 self.sender(processed_messages)
                 self._log(
-                    f"Sent {len(processed_messages)} processed message(s) to Kafka")
+                    f"Sent {len(processed_messages)} processed message(s) to Kafka"
+                )
 
             snapshot = {
                 "received": len(raw_messages),
@@ -149,7 +158,8 @@ class Server(BaseService):
 
         if len(result) != n_messages:
             self._log(
-                f"Warning: Expected {n_messages} messages, but decoded {len(result)}")
+                f"Warning: Expected {n_messages} messages, but decoded {len(result)}"
+            )
 
         if result:
             self._log(f"Kafka consumer delivered {len(result)} message(s)")

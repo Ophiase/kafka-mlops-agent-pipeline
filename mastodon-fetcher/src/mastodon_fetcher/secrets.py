@@ -12,7 +12,7 @@ MASTODON_ACCESS_TOKEN = None
 
 def try_read_file(file_path: str) -> Optional[str]:
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return file.read().strip()
     except FileNotFoundError:
         return None

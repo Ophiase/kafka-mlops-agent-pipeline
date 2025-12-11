@@ -12,18 +12,20 @@ from .state import ProcessorState
 class Processor:
     """LLM-backed sentiment processor powered by a LangGraph pipeline."""
 
-    def __init__(self,
-                 prompt_path: str = "prompts/sentiment_analysis.txt",
-                 model: str = OLLAMA_MODEL,
-                 base_url: str = f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}"):
+    def __init__(
+        self,
+        prompt_path: str = "prompts/sentiment_analysis.txt",
+        model: str = OLLAMA_MODEL,
+        base_url: str = f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}",
+    ):
         self.prompt_text = self._load_prompt(prompt_path)
         self.llm = ChatOllama(model=model, base_url=base_url)
-        
+
         # Initialize nodes
         self.preprocess_node = PreProcessor(self.prompt_text)
         self.generate_node = Generator(self.llm)
         self.postprocess_node = PostProcessor()
-        
+
         self.graph = self._build_graph()
 
     def __call__(self, posts: List[Dict[str, Any]]) -> List[Optional[str]]:

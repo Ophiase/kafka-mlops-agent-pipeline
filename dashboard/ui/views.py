@@ -1,15 +1,19 @@
 from __future__ import annotations
+
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Dict, List, Sequence
+
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
-from .services import ControlApiClient, ControlApiError
-from .kafka_tail import TailSample, initial_tails, fetch_tail, TAIL_LIMIT
+
 from shared.kafka.constants import KAFKA_PROCESSED_TOPIC, KAFKA_RAW_TOPIC
+
+from .kafka_tail import TAIL_LIMIT, TailSample, fetch_tail, initial_tails
+from .services import ControlApiClient, ControlApiError
 
 
 def _positive_int(value: str) -> int:
@@ -167,10 +171,12 @@ def kafka_tail(request: HttpRequest, stream: str) -> JsonResponse:
     except Exception as exc:  # pragma: no cover - observational logging surface
         return JsonResponse({"error": str(exc)}, status=502)
 
-    return JsonResponse({
-        "stream": stream,
-        "messages": [_serialize_tail_entry(sample) for sample in samples],
-    })
+    return JsonResponse(
+        {
+            "stream": stream,
+            "messages": [_serialize_tail_entry(sample) for sample in samples],
+        }
+    )
 
 
 def _handle_post(request: HttpRequest, clients: Dict[str, ControlApiClient]) -> None:
@@ -195,7 +201,9 @@ def _handle_post(request: HttpRequest, clients: Dict[str, ControlApiClient]) -> 
             client.run(payload)
             messages.success(request, f"{definition['label']} executed one iteration.")
         elif action == "configure":
-            payload = _build_config_payload(request, definition.get("config_fields", ()))
+            payload = _build_config_payload(
+                request, definition.get("config_fields", ())
+            )
             client.configure(payload)
             messages.success(request, f"{definition['label']} configuration updated.")
         else:
@@ -206,8 +214,12 @@ def _handle_post(request: HttpRequest, clients: Dict[str, ControlApiClient]) -> 
         messages.error(request, f"{definition['label']} error: {exc}")
 
 
-def _build_run_payload(request: HttpRequest, definition: Dict[str, Any]) -> Dict[str, Any]:
-    payload = {"send_to_kafka": _parse_bool(request.POST.get("send_to_kafka"), default=True)}
+def _build_run_payload(
+    request: HttpRequest, definition: Dict[str, Any]
+) -> Dict[str, Any]:
+    payload = {
+        "send_to_kafka": _parse_bool(request.POST.get("send_to_kafka"), default=True)
+    }
 
     if definition.get("supports_limit"):
         limit_raw = (request.POST.get("limit") or "").strip()
@@ -216,7 +228,9 @@ def _build_run_payload(request: HttpRequest, definition: Dict[str, Any]) -> Dict
     return payload
 
 
-def _build_config_payload(request: HttpRequest, fields: Sequence[ConfigField]) -> Dict[str, Any]:
+def _build_config_payload(
+    request: HttpRequest, fields: Sequence[ConfigField]
+) -> Dict[str, Any]:
     payload: Dict[str, Any] = {}
 
     for field in fields:
@@ -270,7 +284,9 @@ def _build_service_context(
         if stream:
             kafka_panel = {
                 "stream": stream,
-                "title": KAFKA_PANEL_TITLES.get(stream, f"{definition['label']} Kafka Tail"),
+                "title": KAFKA_PANEL_TITLES.get(
+                    stream, f"{definition['label']} Kafka Tail"
+                ),
                 "url": kafka_urls.get(stream, ""),
                 "samples": kafka_tails.get(stream, []),
             }

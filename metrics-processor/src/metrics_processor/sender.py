@@ -13,7 +13,8 @@ class Sender:
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda v: json.dumps(
-                v, default=self.json_serializer).encode("utf-8")
+                v, default=self.json_serializer
+            ).encode("utf-8"),
         )
 
     def __call__(self, informations: List[Dict[str, Any]]) -> None:

@@ -35,11 +35,13 @@ class ServiceState:
             "updated_at": self.updated_at.isoformat(),
         }
 
-    def mark(self,
-             phase: ServicePhase,
-             *,
-             error: Optional[str] = None,
-             metadata: Optional[Dict[str, Any]] = None) -> None:
+    def mark(
+        self,
+        phase: ServicePhase,
+        *,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """Update the state with the provided lifecycle info."""
 
         self.phase = phase
@@ -48,7 +50,9 @@ class ServiceState:
             self.metadata.update(metadata)
         self.updated_at = datetime.utcnow()
 
-    def increment_iterations(self, *, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def increment_iterations(
+        self, *, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
         self.iterations += 1
         if metadata:
             self.metadata.update(metadata)

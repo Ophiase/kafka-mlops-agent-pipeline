@@ -1,7 +1,9 @@
 import datetime
 import json
 from typing import Any, Dict, List
+
 from kafka import KafkaProducer
+
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
 
 
@@ -11,7 +13,8 @@ class Sender:
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda v: json.dumps(
-                v, default=self.json_serializer).encode("utf-8")
+                v, default=self.json_serializer
+            ).encode("utf-8"),
         )
 
     def __call__(self, posts: List[Dict[str, Any]]) -> None:

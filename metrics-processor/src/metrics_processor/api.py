@@ -58,14 +58,15 @@ def stop_service() -> dict:
 @app.post("/run")
 def run_once(payload: RunRequest) -> dict:
     if service.is_running:
-        raise HTTPException(status_code=409,
-                            detail="Stop the service before running a single iteration.")
+        raise HTTPException(
+            status_code=409,
+            detail="Stop the service before running a single iteration.",
+        )
     result = service.run_iteration(send_to_kafka=payload.send_to_kafka)
     return {"result": result, "state": service.status().as_dict()}
 
 
 @app.post("/configure")
 def configure(payload: ConfigureRequest) -> dict:
-    service.configure(timeout_ms=payload.timeout_ms,
-                      max_records=payload.max_records)
+    service.configure(timeout_ms=payload.timeout_ms, max_records=payload.max_records)
     return service.status().as_dict()

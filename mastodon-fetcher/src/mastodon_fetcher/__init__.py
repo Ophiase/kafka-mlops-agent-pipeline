@@ -1,6 +1,6 @@
 """Mastodon fetcher service package."""
 
-from .server import Server
 from .fetcher import Fetcher
+from .server import Server
 
 __all__ = ["Server", "Fetcher"]

@@ -1,7 +1,9 @@
 import json
 import re
 from typing import Any, Dict, List
+
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+
 from ..state import ProcessorState
 
 
@@ -17,8 +19,9 @@ class PreProcessor:
         """
         Sanitizes and formats posts, and constructs the initial messages for the LLM.
         """
-        sanitized: List[Dict[str, str]] = [self._sanitize_and_format(
-            post) for post in state["posts"]]
+        sanitized: List[Dict[str, str]] = [
+            self._sanitize_and_format(post) for post in state["posts"]
+        ]
         payload: Dict[str, List[Dict[str, str]]] = {"items": sanitized}
 
         messages: List[BaseMessage] = [

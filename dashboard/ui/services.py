@@ -15,7 +15,9 @@ class ControlApiClient:
     base_url: str
     timeout: float = 10.0
 
-    def _request(self, method: str, path: str, *, json: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _request(
+        self, method: str, path: str, *, json: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         url = f"{self.base_url.rstrip('/')}{path}"
         try:
             response = requests.request(method, url, json=json, timeout=self.timeout)

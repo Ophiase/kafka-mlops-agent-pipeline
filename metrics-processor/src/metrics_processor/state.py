@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional, TypedDict
+
 from langchain_core.messages import BaseMessage
+
 
 class ProcessorState(TypedDict):
     posts: List[Dict[str, Any]]

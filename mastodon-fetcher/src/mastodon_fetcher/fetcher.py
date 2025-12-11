@@ -1,5 +1,7 @@
 from typing import Any, Dict, List
+
 from mastodon import Mastodon
+
 from .constants import FETCH_NUMBER
 
 
@@ -14,7 +16,9 @@ class Fetcher:
         raw_posts = self.fetch_public(limit, self.client)
         return self.extract(raw_posts)
 
-    def fetch_public(self, limit: int, client: Mastodon | None = None) -> List[Dict[str, Any]]:
+    def fetch_public(
+        self, limit: int, client: Mastodon | None = None
+    ) -> List[Dict[str, Any]]:
         client = client or self.client
         return client.timeline_public(limit=limit)
 

@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 import os
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+
 from .server import Server
 
 AUTO_START = os.getenv("FETCHER_AUTO_START", "true").lower() in {"1", "true", "yes"}
@@ -56,15 +59,17 @@ def stop_service() -> dict:
 @app.post("/run")
 def run_once(payload: RunRequest) -> dict:
     if service.is_running:
-        raise HTTPException(status_code=409,
-                            detail="Stop the service before running a single iteration.")
-    result = service.run_iteration(limit=payload.limit,
-                                   send_to_kafka=payload.send_to_kafka)
+        raise HTTPException(
+            status_code=409,
+            detail="Stop the service before running a single iteration.",
+        )
+    result = service.run_iteration(
+        limit=payload.limit, send_to_kafka=payload.send_to_kafka
+    )
     return {"result": result, "state": service.status().as_dict()}
 
 
 @app.post("/configure")
 def configure(payload: ConfigureRequest) -> dict:
-    service.configure(fetch_limit=payload.fetch_limit,
-                      loop_delay=payload.loop_delay)
+    service.configure(fetch_limit=payload.fetch_limit, loop_delay=payload.loop_delay)
     return service.status().as_dict()

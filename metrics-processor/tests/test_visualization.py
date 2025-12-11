@@ -1,7 +1,9 @@
-from .utils import build_processor
-from src.metrics_processor.processor import Processor
 import os
-from os.path import dirname, abspath, join
+from os.path import abspath, dirname, join
+
+from src.metrics_processor.processor import Processor
+
+from .utils import build_processor
 
 
 def test_visualization():

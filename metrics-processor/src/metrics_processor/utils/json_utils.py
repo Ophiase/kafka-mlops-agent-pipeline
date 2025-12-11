@@ -2,6 +2,7 @@ import json
 import re
 from typing import List, Optional
 
+
 def parse_llm_response(response: str, expected_count: int) -> List[Optional[str]]:
     """
     Parses the LLM response to extract sentiment analysis results.
@@ -16,8 +17,7 @@ def parse_llm_response(response: str, expected_count: int) -> List[Optional[str]
         return [None] * expected_count
 
     try:
-        json_block = re.search(
-            r"```json\s*(\[.*?\])\s*```", response, re.DOTALL)
+        json_block = re.search(r"```json\s*(\[.*?\])\s*```", response, re.DOTALL)
         if json_block:
             response = json_block.group(1)
         else:
@@ -32,8 +32,7 @@ def parse_llm_response(response: str, expected_count: int) -> List[Optional[str]
             return [None] * expected_count
 
         if len(data) != expected_count:
-            print(
-                f"[Processor] Warning: expected {expected_count}, got {len(data)}")
+            print(f"[Processor] Warning: expected {expected_count}, got {len(data)}")
             return [None] * expected_count
 
         return [json.dumps(item) for item in data]
@@ -48,7 +47,10 @@ def parse_llm_response(response: str, expected_count: int) -> List[Optional[str]
         print(f"[Processor] Unexpected error parsing response: {exc}")
         return [None] * expected_count
 
-def best_effort_parse(response: str, expected_count: int) -> Optional[List[Optional[str]]]:
+
+def best_effort_parse(
+    response: str, expected_count: int
+) -> Optional[List[Optional[str]]]:
     """Attempts a tolerant parse when the LLM returns slightly invalid JSON.
 
     This primarily escapes stray quotes inside the explanation field (e.g.,
@@ -74,6 +76,7 @@ def best_effort_parse(response: str, expected_count: int) -> Optional[List[Optio
 
     return parsed
 
+
 def escape_explanation_quotes(raw_obj: str) -> str:
     """Escapes unescaped quotes in the explanation field within a JSON object string."""
 
@@ -94,7 +97,7 @@ def escape_explanation_quotes(raw_obj: str) -> str:
         return raw_obj
 
     value = body[:closing_idx]
-    rest = body[closing_idx + 1:]
+    rest = body[closing_idx + 1 :]
 
     escaped_value = value.replace('"', '\\"')
     rebuilt_tail = f' "{escaped_value}"{rest}'
