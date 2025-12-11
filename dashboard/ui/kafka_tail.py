@@ -86,7 +86,8 @@ def fetch_tail(
                     )
         return samples[-limit:]
     finally:
-        consumer.close()
+        if consumer is not None:
+            consumer.close()
 
 
 def initial_tails(limit: int = TAIL_LIMIT) -> Dict[str, List[TailSample]]:
