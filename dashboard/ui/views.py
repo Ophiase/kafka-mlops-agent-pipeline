@@ -163,7 +163,7 @@ def kafka_tail(request: HttpRequest, stream: str) -> JsonResponse:
     limit = max(1, min(limit, 100))
 
     try:
-        samples = fetch_tail(topic, limit=limit)
+        samples = fetch_tail(topic, limit=limit, raise_on_error=True)
     except Exception as exc:  # pragma: no cover - observational logging surface
         return JsonResponse({"error": str(exc)}, status=502)
 

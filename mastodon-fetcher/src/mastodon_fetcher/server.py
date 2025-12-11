@@ -10,9 +10,6 @@ DEFAULT_LOOP_DELAY = FETCH_INTERVAL_MS / 1000
 
 
 class Server(BaseService):
-    fetcher: Fetcher
-    sender: Sender
-
     def __init__(self,
                  *,
                  access_token: Optional[str] = MASTODON_ACCESS_TOKEN,

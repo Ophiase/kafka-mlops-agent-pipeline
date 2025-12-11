@@ -1,90 +1,59 @@
-import json
-import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from langchain.messages import HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
+from langgraph.graph import END, START, StateGraph
 
 from .constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
+from .nodes import Generator, PostProcessor, PreProcessor
+from .state import ProcessorState
 
 
 class Processor:
-    prompt: SystemMessage
-    llm: ChatOllama
+    """LLM-backed sentiment processor powered by a LangGraph pipeline."""
 
     def __init__(self,
                  prompt_path: str = "prompts/sentiment_analysis.txt",
                  model: str = OLLAMA_MODEL,
                  base_url: str = f"http://{OLLAMA_SERVER_URL}:{OLLAMA_SERVER_PORT}"):
-        self.prompt = self.load_prompt(prompt_path)
-        self.llm = self.build_llm(model, base_url)
+        self.prompt_text = self._load_prompt(prompt_path)
+        self.llm = ChatOllama(model=model, base_url=base_url)
+        
+        # Initialize nodes
+        self.preprocess_node = PreProcessor(self.prompt_text)
+        self.generate_node = Generator(self.llm)
+        self.postprocess_node = PostProcessor()
+        
+        self.graph = self._build_graph()
 
-    def __call__(self, posts: List[Dict[str, Any]]) -> List[str]:
-        # Build messages for LLM
-        messages = self.build_messages(posts)
+    def __call__(self, posts: List[Dict[str, Any]]) -> List[Optional[str]]:
+        initial_state: ProcessorState = {
+            "posts": posts,
+            "sanitized_items": [],
+            "messages": [],
+            "llm_response": "",
+            "final_result": [],
+        }
 
-        # Invoke LLM
-        print("[LLM] Invoke...")
-        llm_response = self.llm.invoke(messages).content
-        print("[LLM] Response received.")
-        print("[LLM] Response:\n", llm_response)
+        final_state = self.graph.invoke(initial_state)
+        return final_state.get("final_result", [])
 
-        # Parse LLM response
-        result = self.parse_ai_response(
-            llm_response,
-            expected_response_count=len(posts))
+    def _build_graph(self):
+        workflow = StateGraph(ProcessorState)
 
-        return result
+        workflow.add_node("preprocess", self.preprocess_node)
+        workflow.add_node("generate", self.generate_node)
+        workflow.add_node("postprocess", self.postprocess_node)
 
-    def load_prompt(self, path: str) -> SystemMessage:
-        return SystemMessage(Path(path).read_text().strip())
+        workflow.add_edge(START, "preprocess")
+        workflow.add_edge("preprocess", "generate")
+        workflow.add_edge("generate", "postprocess")
+        workflow.add_edge("postprocess", END)
 
-    def build_llm(self, model: str, base_url: str) -> ChatOllama:
-        return ChatOllama(model=model, base_url=base_url)
+        return workflow.compile()
 
-    def build_messages(self, posts: List[Dict[str, Any]]) -> List:
-        parsed: List[Dict[str, str]] = [self.parse(p) for p in posts]
-        payload = {"items": parsed}
-        return [self.prompt, HumanMessage(content=str(payload))]
-
-    def parse(self, post: Dict[str, Any]) -> Dict[str, str]:
-        text = self.extract_post(post)
-        cleaned = self.sanitize_post(text)
-        return {"id": post["id"], "text": cleaned}
-
-    def sanitize_post(self, post: str) -> str:
-        # Remove HTML/XML tags and special characters, keep only alphanumerics and spaces
-        cleaned = re.sub(r'<[^>]+>', '', post)  # Remove tags
-        # Remove special characters
-        cleaned = re.sub(r'[^A-Za-z0-9\s]', '', cleaned)
-        return cleaned.strip()
-
-    def extract_post(self, message: Dict[str, Any], limit=100) -> str:
-        return message["text"][:limit]
-
-    def parse_ai_response(self,
-                          response: str,
-                          expected_response_count: int
-                          ) -> List[Dict[str, Any] | None]:
+    def _load_prompt(self, path: str) -> str:
         """
-        Receive a JSON array string and convert it to a list of strings (sub-jsons).
+        Loads the prompt text from a file.
         """
-        checked = True
-        result = None
-
-        try:
-            data = json.loads(response)
-            if isinstance(data, list):
-                result = [json.dumps(item) for item in data]
-            if len(result) != expected_response_count:
-                print("Mismatch in expected response count.")
-                checked = False
-        except json.JSONDecodeError:
-            checked = False
-
-        if checked:
-            return result
-
-        print("Failed to decode JSON response.")
-        return [None] * expected_response_count
+        return Path(path).read_text().strip()

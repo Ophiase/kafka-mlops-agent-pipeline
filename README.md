@@ -26,9 +26,9 @@ The point is to learn building scalable architectures using:
 - ✅ Kafka for data streaming
     - ❌ TODO: Protobuf serialization
 - Dashboard
-    - Controller + Visualizer for the Mastodon agent
-    - Django Mono (backend + frontend)
-    - Next.js + Tailwind (frontend only) ❌ TODO: migrate to this
+    - ✅ Controller + Visualizer for the Mastodon agent
+    - ✅ Django Mono (backend + frontend)
+    - Next.js + Tailwind (frontend) ❌ TODO: migrate to this
 
 The word agent here refers to a stateless (no internal memory) automated event-based system. Perhaps, a more appropriate name would be "Mastodon Listener".
 
@@ -50,9 +50,9 @@ docker compose up -d --build
 
 5. Open the front http://localhost:58005 to access the application.
 
-### Quick Start (Using Kubernetes)
+### Quick Start (Using Kubernetes/Helm)
 
-1. Install docker (cli), kind, kubectl, make
+1. Install docker (cli), kind, kubectl, helm, make
 2. 🎛️ Configure the secrets (not done yet)
 3. 🎛️ Configure your llm server in `/infra/llm-server.env` file.
 4. Create the kind cluster, build and load images, deploy the application:
@@ -61,11 +61,30 @@ docker compose up -d --build
 cd infra/k8s
 make create-cluster
 
-make build-images # build the images if not done yet
-make kind-load-images # load the images into the kind cluster
+make build # build the images (if not done yet)
+make kind-load # load the images into the kind cluster
 
 make deploy # deploy the application
 make port-forward # to open localhost:58005
 ```
 
 5. Open the front http://localhost:58005 to access the application.
+
+## Project Structure
+
+Microservices:
+- [`mastodon-fetcher/`](mastodon-fetcher/README.md): Service that fetches posts from a Mastodon instance.
+-  [`metrics-processor/`](metrics-processor/README.md): Service that processes fetched posts using a language model.
+- [`dashboard/`](dashboard/README.md): Django-based dashboard for visualizing and controlling the Mastodon agent.
+- [`llm-server/`](llm-server/README.md): Local LLM server setup using Ollama or vLLM.
+
+Infrastructure as a code:
+- `infra/`: Infrastructure configurations for Docker Compose and Kubernetes.
+    - `docker-compose/`: Docker Compose setup for local development.
+    - [`k8s/`](infra/k8s/README.md): Kubernetes manifests and Helm charts for production-like deployments.
+- [`localstack/`](localstack/README.md): local AWS simulation using LocalStack (planned).
+- [`terraform/`](terraform/README.md): Infrastructure as Code (IaC) configurations using Terraform (planned).
+
+Other:
+- `documentation/`: Project documentation and resources.
+

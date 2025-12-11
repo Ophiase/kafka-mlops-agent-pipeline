@@ -9,6 +9,7 @@ dependencies = [
     "langchain",
     "langchain-community",
     "langchain-ollama",
+    "langgraph",
     "fastapi",
     "kafka-python",
     "shared",
