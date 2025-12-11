@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mastodon-agent-mlops
+description: Helm chart for the mastodon agent MLOps stack (Kafka broker, Mastodon fetcher, metrics processor, LLM server, dashboard).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,49 @@
+{{- $comp := "mastodon-fetcher" -}}
+{{- $vals := .Values.mastodonFetcher -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $comp }}
+  labels:
+    app.kubernetes.io/component: {{ $comp }}
+    {{- include "mastodon-agent-mlops.labels" . | nindent 4 }}
+spec:
+  replicas: {{ $vals.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: {{ $comp }}
+      {{- include "mastodon-agent-mlops.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: {{ $comp }}
+        {{- include "mastodon-agent-mlops.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: mastodon-fetcher
+          image: {{ $vals.image }}
+          imagePullPolicy: {{ default .Values.global.imagePullPolicy $vals.pullPolicy }}
+          ports:
+            - containerPort: {{ $vals.service.port }}
+              name: http
+          env:
+            {{- range $key, $value := $vals.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $comp }}
+  labels:
+    app.kubernetes.io/component: {{ $comp }}
+    {{- include "mastodon-agent-mlops.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: {{ $comp }}
+    {{- include "mastodon-agent-mlops.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ $vals.service.port }}
+      targetPort: {{ $vals.service.port }}

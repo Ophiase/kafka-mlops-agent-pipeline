@@ -1,5 +1,7 @@
 KIND_CLUSTER := dev
 NS := infra
+RELEASE := mastodon-agent-mlops
+CHART := .
 
 DASHBOARD_IMAGE := infra-dashboard:dev
 FETCHER_IMAGE := infra-mastodon-fetcher:dev
@@ -34,26 +36,19 @@ kind-load-images:
 		kind load docker-image $$image --name $(KIND_CLUSTER); \
 	done
 
-# ---- Kubernetes manifests ----
+# ---- Helm deployment ----
 deploy:
-	kubectl apply -f namespace.yaml
-	kubectl apply -f kafka --recursive
-	kubectl apply -f mastodon-fetcher --recursive
-	kubectl apply -f metrics-processor --recursive
-	kubectl apply -f llm-server --recursive
-	kubectl apply -f dashboard --recursive
+	helm upgrade --install $(RELEASE) $(CHART) --namespace $(NS) --create-namespace
 
 undeploy:
-	kubectl delete -f dashboard --namespace $(NS) --recursive || true
-	kubectl delete -f llm-server --namespace $(NS) --recursive || true
-	kubectl delete -f metrics-processor --namespace $(NS) --recursive || true
-	kubectl delete -f mastodon-fetcher --namespace $(NS) --recursive || true
-	kubectl delete -f kafka --namespace $(NS) --recursive || true
-	kubectl delete namespace $(NS) || true
+	helm uninstall $(RELEASE) --namespace $(NS) || true
+
+template:
+	helm template $(RELEASE) $(CHART) --namespace $(NS)
 
 # ---- Observability ----
 logs:
-	kubectl -n $(NS) logs -l app=dashboard -f
+	kubectl -n $(NS) logs -l app.kubernetes.io/component=dashboard -f
 
 port-forward:
 	kubectl -n $(NS) port-forward svc/dashboard 58005:8000

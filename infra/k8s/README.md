@@ -1,40 +1,42 @@
-# Kubernetes Deployment
+# Helm Deployment
 
-This directory contains the Kubernetes equivalent of the Docker Compose setup.
+This directory now ships a single Helm chart that mirrors the Docker Compose topology (Kafka, mastodon-fetcher, metrics-processor, llm-server, dashboard). Use it for running the full stack on kind or any Kubernetes cluster.
 
-Docker Compose is still great for hot-reload development because it mounts `/app` and `/shared`. In Kubernetes the containers run exactly as they are baked in their images, so there are **no bind mounts**. Because of that, make sure the dev images (e.g. `infra-mastodon-fetcher:dev`) already exist locally before deploying.
+Docker Compose still provides hot-reload via bind mounts. Kubernetes pods run exactly what is baked in the dev images, so rebuild the images first when you change code.
 
-The manifests now cover every service from `docker-compose`:
+## Prerequisites
+- Docker
+- kind
+- kubectl
+- Helm
+- make (optional, commands are in the Makefile)
 
-- `kafka/` – single broker using `confluentinc/cp-kafka:8.1.0`.
-- `mastodon-fetcher/` – FastAPI control plane for the fetcher loop.
-- `metrics-processor/` – FastAPI control plane plus LLM integration.
-- `llm-server/` – Ollama server pod the processor talks to.
-- `dashboard/` – Django dashboard that orchestrates the other services.
-
-## Setup Instructions
-
-Requirements
-- ``Docker``: Containerization platform to build and run containerized applications.
-- ``kind``: Create the environment for deploying applications using Kubernetes.
-- ``kubectl``: Applying configurations and managing the cluster.
-- ``Make``: Automate the build and deployment process.
-    - You can type directly the commands from the Makefile if you prefer not to use Make.
-
+## Typical flow
 ```bash
-# Create the Kubernetes cluster using kind
+# One-time: create a kind cluster
 make create-cluster
 
-# (Optional) rebuild & reload the dev images if you changed them
+# Rebuild images after code changes
 make build-images
+
+# Load the dev images into kind so Helm can pull them
 make kind-load-images
 
-# Deploy every manifest (namespace + kafka + services)
+# Install/upgrade the chart into namespace infra
 make deploy
 
-# Check dashboard logs or expose it locally
+# (Optional) inspect rendered manifests
+make template
+
+# Follow dashboard logs or port-forward locally
 make logs
 make port-forward
+
+# Cleanup
+make undeploy
 ```
 
-If you update the other service images, rebuild them with the same tags that `docker-compose` uses (`infra-*-service:dev`) and run `kind load docker-image <tag> --name dev` before redeploying.
+Notes
+- Release name defaults to `mastodon-agent-mlops` and the namespace to `infra` (see Makefile).
+- Services keep the same DNS names as docker-compose (`kafka`, `mastodon-fetcher`, `metrics-processor`, `llm-server`, `dashboard`).
+- Tweak images, ports, or env vars via `values.yaml` or `--set` flags when calling Helm.
