@@ -85,6 +85,10 @@ def fetch_tail(
                         )
                     )
         return samples[-limit:]
+    except Exception:
+        if raise_on_error:
+            raise
+        return []
     finally:
         if consumer is not None:
             consumer.close()
