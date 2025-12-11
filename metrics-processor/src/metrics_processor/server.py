@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from kafka import KafkaConsumer
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
 from shared.server import BaseService
-from .constants import OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
+from .constants import KAFKA_GROUP_ID, OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 from .processor import Processor
 from .sender import Sender
 
@@ -101,17 +101,29 @@ class Server(BaseService):
                 "messages": raw_messages,
                 "processed_messages": processed_messages,
             }
+        except Exception:
+            # Force consumer recreation on next iteration after any failure.
+            self._release_consumer()
+            raise
         finally:
             if release_after_iteration:
                 self._release_consumer()
+    
+    def show_offsets(self, consumer: KafkaConsumer) -> None:
+        for tp in consumer.assignment():
+            position = consumer.position(tp)
+            self._log(f"TopicPartition {tp} at offset {position}")
 
     def pull_messages(self, consumer: KafkaConsumer) -> Optional[List[Dict[str, Any]]]:
+        self.show_offsets(consumer)
         raw_messages = consumer.poll(
             timeout_ms=self.timeout_ms,
             max_records=self.max_records,
         )
+        self.show_offsets(consumer)
 
         if not raw_messages:
+            self._log("Kafka consumer poll returned no messages")
             return None
 
         n_messages = 0
@@ -143,7 +155,9 @@ class Server(BaseService):
             self._consumer = KafkaConsumer(
                 KAFKA_RAW_TOPIC,
                 bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
+                group_id=KAFKA_GROUP_ID,
                 auto_offset_reset="earliest",
+                enable_auto_commit=True,
             )
             self._consumer_owner = caller
         elif self._consumer_owner != caller:
