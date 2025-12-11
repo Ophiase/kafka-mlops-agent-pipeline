@@ -4,6 +4,7 @@ import threading
 from typing import Any, Dict, List, Optional
 from kafka import KafkaConsumer
 from shared.kafka.constants import KAFKA_PORT, KAFKA_RAW_TOPIC, KAFKA_SERVER
+from shared.kafka.topics import ensure_topic_exists
 from shared.server import BaseService
 from .constants import KAFKA_GROUP_ID, OLLAMA_MODEL, OLLAMA_SERVER_PORT, OLLAMA_SERVER_URL
 from .processor import Processor
@@ -32,6 +33,14 @@ class Server(BaseService):
             "timeout_ms": self.timeout_ms,
             "max_records": self.max_records,
         })
+
+        ensure_topic_exists(
+            bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
+            topic_name=KAFKA_RAW_TOPIC,
+            num_partitions=1,
+            replication_factor=1,
+        )
+
 
     def run(self) -> None:
         self._log("Metrics Processor Server is Listening...")
@@ -108,7 +117,7 @@ class Server(BaseService):
         finally:
             if release_after_iteration:
                 self._release_consumer()
-    
+
     def show_offsets(self, consumer: KafkaConsumer) -> None:
         for tp in consumer.assignment():
             position = consumer.position(tp)
