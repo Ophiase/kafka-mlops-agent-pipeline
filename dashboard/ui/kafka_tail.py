@@ -38,16 +38,22 @@ def _format_timestamp(epoch_millis: int | None) -> str:
     return dt.isoformat()
 
 
-def fetch_tail(topic: str, *, limit: int = TAIL_LIMIT) -> List[TailSample]:
-    consumer = KafkaConsumer(
-        bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
-        enable_auto_commit=False,
-        auto_offset_reset="latest",
-        consumer_timeout_ms=250,
-        security_protocol="PLAINTEXT",
-    )
-
+def fetch_tail(
+    topic: str,
+    *,
+    limit: int = TAIL_LIMIT,
+    raise_on_error: bool = False,
+) -> List[TailSample]:
+    consumer: KafkaConsumer | None = None
     try:
+        consumer = KafkaConsumer(
+            bootstrap_servers=f"{KAFKA_SERVER}:{KAFKA_PORT}",
+            enable_auto_commit=False,
+            auto_offset_reset="latest",
+            consumer_timeout_ms=250,
+            security_protocol="PLAINTEXT",
+        )
+
         partitions = consumer.partitions_for_topic(topic)
         if not partitions:
             return []
