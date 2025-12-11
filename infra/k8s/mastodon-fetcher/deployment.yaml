@@ -21,6 +21,8 @@ spec:
             - containerPort: 8001
               name: http
           env:
+            - name: KAFKA_PORT
+              value: "9092"
             - name: FETCH_INTERVAL_MS
               value: "5000"
             - name: FETCHER_API_PORT

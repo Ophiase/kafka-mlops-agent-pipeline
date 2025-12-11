@@ -21,6 +21,8 @@ spec:
             - containerPort: 8002
               name: http
           env:
+            - name: KAFKA_PORT
+              value: "9092"
             - name: PROCESSOR_API_PORT
               value: "8002"
             - name: PROCESSOR_AUTO_START

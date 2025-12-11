@@ -20,6 +20,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: KAFKA_PORT
+              value: "9092"
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "kafka:9092"
             - name: FETCHER_API_URL
